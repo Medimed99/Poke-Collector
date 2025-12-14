@@ -9648,6 +9648,26 @@ window.claimQuest=function(questType,questId){
 
 window.openBlindBox=function(){checkBlindBoxReset();const hasBonus=gameState.blindBoxBonus>0;const remaining=gameState.blindBoxSlots-gameState.blindBoxUsed;if(!hasBonus&&gameState.blindBoxUsed>=gameState.blindBoxSlots){showToast('Vous avez utilisé toutes vos Blind Box!\nProchaine Blind Box disponible demain.','error');return;}const guaranteedLegendary=gameState.blindBoxPity>=20;let pokemon;if(guaranteedLegendary){const legendaryPool=POKEMON_DATA.legendary;const currentRegion=getCurrentUnlockedRegion();let filteredPool=filterPokemonByRegion(legendaryPool,currentRegion);const uncaptured=filteredPool.filter(id=>!gameState.captured.has(id));const pool=uncaptured.length>0?uncaptured:filteredPool.length>0?filteredPool:legendaryPool.slice(0,5);const id=pool[Math.floor(Math.random()*pool.length)];const shinyRate=(1/256)+(Math.floor(gameState.streak/5)*0.01);let isShiny=Math.random()<shinyRate;if(id===130)isShiny=false;pokemon={id,name:FRENCH_NAMES[id],rarity:'legendary',isShiny};gameState.blindBoxPity=0;showToast('🎰 PITY ACTIVÉ! Légendaire garanti!','success');}else{pokemon=selectNewPokemonForBlindBox();gameState.blindBoxPity++;}if(hasBonus){gameState.blindBoxBonus--;}else{gameState.blindBoxUsed++;}gameState.totalBlindBoxOpened++;updateQuestProgress('blindbox_opened',gameState.totalBlindBoxOpened);const newRemaining=gameState.blindBoxSlots-gameState.blindBoxUsed;if(newRemaining===4&&!gameState.blindBoxResetTime){gameState.blindBoxResetTime=Date.now()+(24*60*60*1000);saveGame();}if(newRemaining===5){gameState.blindBoxResetTime=null;saveGame();}showBlindBoxAnimation(pokemon);};
 
+// Fonction pour recharger les slots de Blind Box
+window.rechargeBlindBoxSlots = function() {
+    gameState.blindBoxUsed = 0;
+    gameState.blindBoxSlots = 5;
+    gameState.blindBoxResetTime = null;
+    gameState.lastReset = Date.now();
+    
+    if (typeof saveGame === 'function') {
+        saveGame();
+    }
+    
+    if (typeof showToast === 'function') {
+        showToast('🔄 Slots de Blind Box rechargés ! (5/5)', 'success');
+    }
+    
+    if (typeof updateUI === 'function') {
+        updateUI();
+    }
+};
+
 function showBlindBoxAnimation(pokemon){const modal=document.createElement('div');modal.style.cssText=`position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 99999; animation: fadeIn 0.3s ease;`;modal.innerHTML=`<div style="text-align: center;"><div style="font-size: 8em; animation: shake 0.5s infinite;" id="box-icon">🎁</div><div style="color: white; font-size: 1.5em; margin-top: 20px;">Ouverture en cours...</div></div>`;document.body.appendChild(modal);setTimeout(()=>{modal.remove();revealBlindBoxPokemon(pokemon);},1500);}
 
 // Initialisation du modèle 3D de cadeau pour Blind Box
