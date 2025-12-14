@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Génération automatique des icônes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid #10b981;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Génération automatique des icônes Pokéball</h1>
+    <div id="status" class="status">Génération en cours...</div>
+    <div id="preview"></div>
+
+    <script>
+        function drawPokeball(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const radius = size * 0.45;
+            
+            // Fond transparent
+            ctx.clearRect(0, 0, size, size);
+            
+            // Ombre portée (optionnel, pour la profondeur)
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = size * 0.05;
+            ctx.shadowOffsetY = size * 0.02;
+            
+            // Cercle extérieur (contour noir)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fill();
+            
+            // Moitié supérieure (rouge)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius - 2, Math.PI, 0, false);
+            ctx.fillStyle = '#e60012';
+            ctx.fill();
+            
+            // Dégradé rouge pour effet 3D
+            const gradientRed = ctx.createLinearGradient(centerX, centerY - radius, centerX, centerY);
+            gradientRed.addColorStop(0, '#ff1a2e');
+            gradientRed.addColorStop(1, '#cc0010');
+            ctx.fillStyle = gradientRed;
+            ctx.fill();
+            
+            // Moitié inférieure (blanc)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius - 2, 0, Math.PI, false);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            
+            // Bande noire centrale
+            ctx.beginPath();
+            ctx.rect(centerX - radius + 2, centerY - radius * 0.12, (radius - 2) * 2, radius * 0.24);
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fill();
+            
+            // Bouton central (cercle noir)
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.18, 0, Math.PI * 2);
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fill();
+            
+            // Cercle blanc intérieur du bouton
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.14, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            
+            // Reflet/highlight sur le bouton
+            const gradientButton = ctx.createRadialGradient(
+                centerX - radius * 0.05, centerY - radius * 0.05,
+                0,
+                centerX, centerY,
+                radius * 0.14
+            );
+            gradientButton.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+            gradientButton.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = gradientButton;
+            ctx.fill();
+            
+            // Reflet sur la partie rouge
+            ctx.beginPath();
+            ctx.arc(centerX - radius * 0.2, centerY - radius * 0.3, radius * 0.3, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.fill();
+        }
+
+        function generateIcon(size, name) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            
+            drawPokeball(canvas, size);
+            
+            return new Promise((resolve) => {
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    resolve({ url, blob, name: `${name}.png`, size });
+                }, 'image/png');
+            });
+        }
+
+        async function generateAllIcons() {
+            const status = document.getElementById('status');
+            const preview = document.getElementById('preview');
+            
+            status.innerHTML = 'Génération des icônes...';
+            
+            const icons = [
+                { size: 192, name: 'icon-192' },
+                { size: 512, name: 'icon-512' }
+            ];
+            
+            const generated = [];
+            
+            for (const icon of icons) {
+                const result = await generateIcon(icon.size, icon.name);
+                generated.push(result);
+                
+                // Afficher la prévisualisation
+                const previewDiv = document.createElement('div');
+                previewDiv.style.cssText = 'display: inline-block; margin: 20px; text-align: center;';
+                previewDiv.innerHTML = `
+                    <h3>${result.name}</h3>
+                    <p>${result.size}x${result.size}px</p>
+                    <img src="${result.url}" style="border: 2px solid #667eea; border-radius: 8px; margin: 10px;" width="${Math.min(result.size, 200)}" height="${Math.min(result.size, 200)}">
+                    <br>
+                    <a href="${result.url}" download="${result.name}" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-decoration: none; border-radius: 5px;">Télécharger</a>
+                `;
+                preview.appendChild(previewDiv);
+            }
+            
+            status.innerHTML = '✅ Icônes générées avec succès ! Cliquez sur les boutons "Télécharger" ci-dessus.';
+            
+            // Téléchargement automatique après 1 seconde
+            status.innerHTML += '<br><br>📥 Téléchargement automatique dans 1 seconde...';
+            setTimeout(() => {
+                generated.forEach((icon, index) => {
+                    setTimeout(() => {
+                        const link = document.createElement('a');
+                        link.href = icon.url;
+                        link.download = icon.name;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }, index * 500);
+                });
+                
+                setTimeout(() => {
+                    status.innerHTML += '<br><br>✅ Téléchargement terminé ! Placez les fichiers dans <code>assets/icons/</code>';
+                }, 1500);
+            }, 1000);
+        }
+
+        // Générer automatiquement au chargement
+        window.addEventListener('load', generateAllIcons);
+    </script>
+</body>
+</html>
+
