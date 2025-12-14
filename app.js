@@ -7149,7 +7149,9 @@ function getCurrentBuddy() {
 
 // GENESIS REBOOT - Blind Box Intelligente avec système de Pity
 function selectNewPokemonForBlindBox() {
-    const currentRegion = gameState.currentRegion || getCurrentUnlockedRegion();
+    // CORRECTION : Toujours utiliser getCurrentUnlockedRegion() pour avoir la bonne région
+    // Ne pas utiliser gameState.currentRegion qui peut être obsolète
+    const currentRegion = getCurrentUnlockedRegion();
     
     const regionRange = {
         'Kanto': { min: 1, max: 151 },
@@ -7394,9 +7396,17 @@ function addToCollection(pokemonId,isShiny,isGolden=false){
     // GENESIS REBOOT - Vérifier si Kanto est complété (151/151) pour déclencher MissingNo
     // BUG FIX : Utiliser getCaughtCount('Kanto') au lieu de captured.size pour éviter le bug "Œuf Mystère"
     // (Si un joueur a un Pokémon Johto via œuf avant de finir Kanto, captured.size peut être > 151)
-    if (region === 'Kanto' && getCaughtCount('Kanto') === 151 && !gameState.missingNoTriggered) {
-        gameState.missingNoTriggered = true;
-        setTimeout(() => triggerMissingNoEvent(), 2000); // Délai de 2 secondes pour laisser le temps à l'animation de capture
+    // CORRECTION : Vérifier que missingNoTriggered est bien défini (true) avant de déclencher
+    if (region === 'Kanto' && getCaughtCount('Kanto') === 151) {
+        // Initialiser le flag s'il n'existe pas
+        if (gameState.missingNoTriggered === undefined) {
+            gameState.missingNoTriggered = false;
+        }
+        // Ne déclencher que si le flag est explicitement false (pas encore déclenché)
+        if (gameState.missingNoTriggered === false) {
+            gameState.missingNoTriggered = true;
+            setTimeout(() => triggerMissingNoEvent(), 2000); // Délai de 2 secondes pour laisser le temps à l'animation de capture
+        }
     }
     
     // CORRECTION : Vérifier si Johto est complété (100/100) pour déclencher MissingNo pour Hoenn
@@ -8638,7 +8648,7 @@ function updateNavigationVisibility() {
             research: { id: 'research', condition: 'level_5', unlocked: false },
             poker: { id: 'poker', condition: 'level_12', unlocked: false },
             rogue: { id: 'rogue', condition: 'level_20_and_johto', unlocked: false },
-            blindbox: { id: 'blindbox', condition: 'level_4', unlocked: false },
+            blindbox: { id: 'blindbox', condition: 'level_8', unlocked: false },
             tcg: { id: 'tcg', condition: 'level_25', unlocked: false },
             quests: { id: 'quests', condition: 'level_3', unlocked: false }
         };
@@ -13994,8 +14004,30 @@ window.applySaveData = function(data) {
         if (!gameState.blindBoxBonus) gameState.blindBoxBonus = 0;
         if (!gameState.fishingHistory) gameState.fishingHistory = [];
         // CORRECTION : Restaurer missingNoTriggered pour éviter les répétitions
-        if (data.missingNoTriggered !== undefined) gameState.missingNoTriggered = data.missingNoTriggered;
-        if (data.missingNoTriggeredJohto !== undefined) gameState.missingNoTriggeredJohto = data.missingNoTriggeredJohto;
+        // Initialiser à false si non défini pour éviter les déclenchements intempestifs
+        if (data.missingNoTriggered !== undefined) {
+            gameState.missingNoTriggered = data.missingNoTriggered;
+        } else {
+            // Si Kanto est complété, le flag doit être true pour éviter la répétition
+            // Note: getCaughtCount() utilise gameState.captured qui est déjà restauré plus haut
+            if (typeof getCaughtCount === 'function') {
+                const kantoCount = getCaughtCount('Kanto');
+                gameState.missingNoTriggered = (kantoCount >= 151);
+            } else {
+                gameState.missingNoTriggered = false;
+            }
+        }
+        if (data.missingNoTriggeredJohto !== undefined) {
+            gameState.missingNoTriggeredJohto = data.missingNoTriggeredJohto;
+        } else {
+            // Si Johto est complété, le flag doit être true pour éviter la répétition
+            if (typeof getCaughtCount === 'function') {
+                const johtoCount = getCaughtCount('Johto');
+                gameState.missingNoTriggeredJohto = (johtoCount >= 100);
+            } else {
+                gameState.missingNoTriggeredJohto = false;
+            }
+        }
         if (!gameState.research) gameState.research = { unlocked: false, energy: 0, totalEnergyProduced: 0, clickMultiplier: 1, lastSaveTime: Date.now(), automationLevel: 0, habitats: { 'forest': { name: 'Forêt', type: 'Grass', level: 0, unlocked: true, slots: 1, assigned: [], mascotte: null }, 'ocean': { name: 'Océan', type: 'Water', level: 0, unlocked: false, slots: 1, assigned: [], mascotte: null }, 'cave': { name: 'Grotte', type: 'Rock', level: 0, unlocked: false, slots: 1, assigned: [], mascotte: null }, 'volcano': { name: 'Volcan', type: 'Fire', level: 0, unlocked: false, slots: 1, assigned: [], mascotte: null }, 'power_plant': { name: 'Centrale', type: 'Electric', level: 0, unlocked: false, slots: 1, assigned: [], mascotte: null }, 'graveyard': { name: 'Cimetière', type: 'Ghost', level: 0, unlocked: false, slots: 1, assigned: [], mascotte: null } } };
         if (!gameState.narrative) gameState.narrative = { queue: [], history: [], currentSpeaker: 'porygon' };
         
@@ -14142,6 +14174,21 @@ function unlockFeaturesByLevel() {
                 gameState.research.habitats[habitatId].mascotte = null;
             }
         });
+    }
+    
+    // CORRECTION : Débloquer Blind Box au niveau 4 (ou niveau 8 selon la configuration)
+    // Vérifier la condition du module pour déterminer le niveau requis
+    if (!gameState.modules) gameState.modules = {};
+    if (!gameState.modules.blindbox) {
+        gameState.modules.blindbox = {
+            id: 'blindbox',
+            condition: 'level_8', // Condition originale
+            unlocked: false
+        };
+    }
+    // Débloquer si niveau >= 4 (comme dans updateNavigationVisibility) OU niveau >= 8 (condition originale)
+    if (gameState.level >= 4) {
+        gameState.modules.blindbox.unlocked = true;
     }
     
     // Autres déblocages basés sur le niveau peuvent être ajoutés ici
