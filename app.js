@@ -23,15 +23,15 @@ const POKEMON_DATA = {
 
 const DAILY_QUEST_POOLS = {
     easy: [
-        {id:'daily_captures_5',name:'Capturer 5 Pokémon',desc:'Capturez 5 Pokémon',target:5,reward:{coins:500,xp:100,framby:1},icon:'⚾',trackType:'captures'},
-        {id:'daily_captures_10',name:'Capturer 10 Pokémon',desc:'Capturez 10 Pokémon',target:10,reward:{coins:800,xp:150,pinap:1},icon:'⚾',trackType:'captures'},
+        {id:'daily_captures_5',name:'Capturer 5 Pokémon',desc:'Capturez 5 Pokémon',target:5,reward:{coins:500,xp:100,framby:1},icon:'pokeball',trackType:'captures'},
+        {id:'daily_captures_10',name:'Capturer 10 Pokémon',desc:'Capturez 10 Pokémon',target:10,reward:{coins:800,xp:150,pinap:1},icon:'pokeball',trackType:'captures'},
         {id:'daily_coins_1000',name:'Gagner 1000 coins',desc:'Gagnez 1000 coins en capture',target:1000,reward:{coins:600,xp:100,pokeball:5},icon:'💰',trackType:'coins'},
         {id:'daily_flees_15',name:'Atterrissage x15',desc:'Subir 15 échecs de capture',target:15,reward:{coins:400,xp:80,pinap:1},icon:'❌',trackType:'flees'}
     ],
     medium: [
         {id:'daily_captures_20',name:'Capturer 20 Pokémon',desc:'Capturez 20 Pokémon',target:20,reward:{coins:1200,xp:200,greatball:3},icon:'⚾',trackType:'captures'},
         {id:'daily_fishing_3',name:'Pêcher 3 Pokémon',desc:'Pêchez 3 Pokémon (niveau 2+)',target:3,reward:{coins:600,xp:150,diveball:1},icon:'🎣',trackType:'fished'},
-        {id:'daily_coins_2000',name:'Gagner 2000 coins',desc:'Gagnez 2000 coins en capture',target:2000,reward:{coins:1000,xp:150,lootbox:1},icon:'💰',trackType:'coins'},
+        {id:'daily_coins_2000',name:'Gagner 2000 coins',desc:'Gagnez 2000 coins en capture',target:2000,reward:{coins:1000,xp:150,lootbox:1},icon:'coins',trackType:'coins'},
         {id:'daily_shiny_1',name:'Trouver un Shiny',desc:'Capturez 1 Pokémon Shiny',target:1,reward:{coins:1500,xp:300,ceriz:1},icon:'✨',trackType:'shinies'},
         {id:'daily_rare_2',name:'Capturer 2 Rares',desc:'Capturez 2 Pokémon Rares ou mieux',target:2,reward:{coins:1000,xp:200,ultraball:1},icon:'⭐',trackType:'rare_captures'},
         {id:'daily_rogue_1',name:'Explorateur',desc:'Complétez 1 Expédition Arcanes',target:1,reward:{coins:1000,xp:200,rarebox:1},icon:'🗺️',trackType:'rogue_completed'}
@@ -60,7 +60,7 @@ const QUESTS_DATA = {
         {id:'special_mystery_egg',name:'Éclosion Mystère',desc:'Capturez 50 Pokémon',target:50,reward:{coins:2000,xp:500,mystery_egg:1},icon:'🥚',oneTime:true},
         {id:'special_complete_kanto',name:'Compléter Kanto',desc:'Complétez le Pokédex Kanto (151/151)',target:151,reward:{coins:25000,xp:1500,suprarebox:1,badge:'Kanto Collector'},icon:'👑',oneTime:true},
         {id:'special_10_shinies',name:'Shiny Hunter',desc:'Capturez 10 Pokémon Shiny',target:10,reward:{coins:15000,xp:2000,lucky_charm:1,rarebox:1},icon:'✨',oneTime:true},
-        {id:'special_3_legendaries',name:'Chasseur d\'Étoiles',desc:'Capturer 3 Légendaires',target:3,reward:{coins:10000,xp:1000,legendary_radar:1},icon:'💎',oneTime:true},
+        {id:'special_3_legendaries',name:'Chasseur d\'Étoiles',desc:'Capturer 3 Légendaires',target:3,reward:{coins:10000,xp:1000,legendary_radar:1},icon:'shard_common',oneTime:true},
         {id:'special_rogue_10',name:'Maître Explorateur',desc:'Complétez 10 Full Clear',target:10,reward:{coins:10000,xp:1000,shards:50},icon:'🏆',oneTime:true}
     ],
     permanent: [
@@ -71,7 +71,7 @@ const QUESTS_DATA = {
         {id:'perm_type_master',name:'Type Master',desc:'Capturer 20 Pokémon d\'un même type',target:20,reward:{coins:1000,xp:200,incensefleur:1},icon:'🌿',oneTime:false},
         {id:'perm_regional_collection',name:'Collection Régionale',desc:'Capturer 30 Pokémon d\'une région',target:30,reward:{coins:3000,xp:500,marin_lure:1},icon:'🌊',oneTime:false},
         {id:'perm_lucky_merchant',name:'Marchand Chanceux',desc:'Acheter 10 objets à la boutique',target:10,reward:{coins:500,xp:100,pinap:1},icon:'✉️',oneTime:false},
-        {id:'perm_perfect_routine',name:'Routine Parfaite',desc:'Se connecter 7 jours consécutifs',target:7,reward:{coins:2000,xp:300,lootbox:1},icon:'🔔',oneTime:false},
+        {id:'perm_perfect_routine',name:'Routine Parfaite',desc:'Se connecter 7 jours consécutifs',target:7,reward:{coins:2000,xp:300,lootbox:1},icon:'lootbox',oneTime:false},
         {id:'perm_hidden_treasure',name:'Trésor Caché',desc:'Ouvrir 20 Blind Box',target:20,reward:{coins:1500,xp:100,ceriz:1},icon:'✨',oneTime:false},
         {id:'perm_regional_explorer',name:'Découvreur Régional',desc:'Débloquer 2 régions',target:2,reward:{coins:5000,xp:1000,rarebox:1},icon:'🧭',oneTime:true},
         {id:'perm_rogue_master',name:'Maître de l\'Expédition',desc:'Complétez 50 runs roguelike',target:50,reward:{coins:25000,xp:2000,legendary_radar:1},icon:'👑',oneTime:false}
@@ -170,6 +170,389 @@ const EXPEDITION_CONFIG = {
     }
 };
 
+// ===== PROTOCOLE "DATA GUARDIAN" - SYSTÈME DE COMBAT BOSS =====
+
+// Structure des stats de combat
+const BATTLE_STATS = {
+    HP: "Points de vie (Endurance des données)",
+    ATK: "Puissance d'attaque (Force de décryptage)",
+    DEF: "Défense (Intégrité du code)",
+    SPD: "Vitesse (Latence - détermine l'ordre de jeu)",
+    CRIT_RATE: "Chance de coup critique (fixe 15% + bonus)",
+    CRIT_DMG: "Dégâts critiques (fixe 50% + bonus)"
+};
+
+// Base de stats par rareté (pour calcul dynamique)
+const BASE_STATS_BY_RARITY = {
+    common: { hp: 800, atk: 120, def: 100, spd: 80 },
+    uncommon: { hp: 1000, atk: 150, def: 120, spd: 90 },
+    rare: { hp: 1300, atk: 200, def: 150, spd: 100 },
+    super_rare: { hp: 1600, atk: 250, def: 180, spd: 110 },
+    legendary: { hp: 2000, atk: 300, def: 220, spd: 120 }
+};
+
+// Mapping des archétypes (ID Pokémon → Archétype)
+// Système intelligent : Si non défini, assignation automatique basée sur les stats/types
+const POKEMON_ARCHETYPES = {
+    // Attacker (Gros dégâts, peu de PV)
+    6: 'attacker',    // Dracaufeu
+    9: 'attacker',    // Tortank
+    3: 'attacker',    // Florizarre
+    94: 'attacker',   // Ectoplasma
+    65: 'attacker',   // Alakazam
+    150: 'attacker',  // Mewtwo
+    151: 'attacker',  // Mew
+    59: 'attacker',   // Arcanin
+    130: 'attacker',  // Léviator
+    149: 'attacker',  // Dracolosse
+    248: 'attacker',  // Tyranocif
+    373: 'attacker',  // Drattak
+    
+    // Tank (Provoque, Gros PV)
+    95: 'tank',       // Onix
+    143: 'tank',      // Ronflex
+    76: 'tank',       // Golem
+    34: 'tank',       // Nidoking
+    31: 'tank',       // Nidoqueen
+    112: 'tank',      // Rhinoféros
+    208: 'tank',      // Steelix
+    306: 'tank',      // Charkos
+    
+    // Support (Soigne, Boost ATK/SPD)
+    113: 'support',   // Leveinard
+    35: 'support',    // Mélofée
+    36: 'support',    // Mélodelfe
+    242: 'support',   // Leuphorie
+    176: 'support',   // Togetic
+    282: 'support',   // Gardevoir
+    196: 'support',   // Mentali
+    
+    // Disruptor (Stun, Réduit vitesse)
+    25: 'disruptor',  // Pikachu
+    42: 'disruptor',  // Nosferalto
+    24: 'disruptor',  // Arbok
+    169: 'disruptor', // Nosferalto
+    26: 'disruptor',  // Raichu
+    135: 'disruptor', // Voltali
+    181: 'disruptor'  // Pharamp
+};
+
+// Fonction pour obtenir l'archétype d'un Pokémon (avec fallback intelligent)
+function getPokemonArchetype(pokemonId) {
+    // Si défini explicitement, utiliser
+    if (POKEMON_ARCHETYPES[pokemonId]) {
+        return POKEMON_ARCHETYPES[pokemonId];
+    }
+    
+    // Sinon, assignation automatique basée sur le type et la rareté
+    const types = POKEMON_TYPES[pokemonId] || ['Normal'];
+    const rarity = getRarity(pokemonId);
+    
+    // Types défensifs → Tank
+    if (types.includes('Steel') || types.includes('Rock') || types.includes('Ground')) {
+        return 'tank';
+    }
+    
+    // Types offensifs → Attacker
+    if (types.includes('Fire') || types.includes('Electric') || types.includes('Dragon')) {
+        return 'attacker';
+    }
+    
+    // Types spéciaux → Support ou Disruptor
+    if (types.includes('Psychic') || types.includes('Fairy')) {
+        return rarity === 'legendary' ? 'support' : 'disruptor';
+    }
+    
+    // Par défaut selon la rareté
+    if (rarity === 'legendary' || rarity === 'super_rare') {
+        return 'attacker';
+    }
+    
+    return 'attacker'; // Par défaut Attacker
+}
+
+// Skills par archétype
+const ARCHETYPE_SKILLS = {
+    attacker: [
+        { id: 's1_attack', name: 'Attaque', cooldown: 0, type: 'damage_single', multiplier: 1.0 },
+        { id: 's2_aoe', name: 'Assaut', cooldown: 3, type: 'damage_aoe', multiplier: 0.7 },
+        { id: 'passive_crit', name: 'Précision', type: 'passive', effect: 'crit_rate_up' }
+    ],
+    tank: [
+        { id: 's1_attack', name: 'Charge', cooldown: 0, type: 'damage_single', multiplier: 0.8 },
+        { id: 's2_taunt', name: 'Provocation', cooldown: 4, type: 'taunt', multiplier: 0 },
+        { id: 'passive_def', name: 'Bouclier', type: 'passive', effect: 'def_up' }
+    ],
+    support: [
+        { id: 's1_heal', name: 'Soin', cooldown: 0, type: 'heal', multiplier: 0.3 },
+        { id: 's2_buff', name: 'Renforcement', cooldown: 4, type: 'buff_team', multiplier: 0 },
+        { id: 'passive_regen', name: 'Régénération', type: 'passive', effect: 'hp_regen' }
+    ],
+    disruptor: [
+        { id: 's1_attack', name: 'Choc', cooldown: 0, type: 'damage_single', multiplier: 0.9 },
+        { id: 's2_stun', name: 'Étourdissement', cooldown: 5, type: 'stun', multiplier: 0 },
+        { id: 'passive_slow', name: 'Ralentissement', type: 'passive', effect: 'spd_down_enemy' }
+    ]
+};
+
+// Base de données des Boss (Data Guardians)
+// Note: BOSS_DATA et LORE_FILES_DATA sont définis plus bas dans le fichier (ligne ~525)
+// Cette section contient les structures de base pour le système de combat
+
+// Lore Files (Fichiers corrompus) - Structure de base
+// Les données complètes sont dans LORE_FILES_DATA plus bas
+const LORE_FILES_DATA_BASE = {
+    log_system_01: {
+        id: 'log_system_01',
+        name: 'log_system_01.enc',
+        displayName: 'Log Système v1.0',
+        encrypted: true,
+        decryptCost: 1000, // EO
+        content: 'Les premiers logs du système révèlent une instabilité dans la matrice de données. Porygon-Z tente de maintenir la cohésion, mais la corruption s\'étend.',
+        passiveBonus: {
+            type: 'xp_boost',
+            value: 0.05,
+            description: '+5% XP sur toutes les captures'
+        }
+    },
+    journal_chen_404: {
+        id: 'journal_chen_404',
+        name: 'journal_chen_404.enc',
+        displayName: 'Journal Chen - Erreur 404',
+        encrypted: true,
+        decryptCost: 2000,
+        content: 'Le journal du Professeur Chen révèle des expériences sur la stabilité dimensionnelle. Une erreur critique (404) a provoqué l\'effondrement.',
+        passiveBonus: {
+            type: 'capture_rate',
+            value: 0.005,
+            description: '+0.5% taux de capture global'
+        }
+    },
+    project_mewtwo_log: {
+        id: 'project_mewtwo_log',
+        name: 'project_mewtwo_log.corrupt',
+        displayName: 'Projet Mewtwo - Log Corrompu',
+        encrypted: true,
+        decryptCost: 5000,
+        content: 'Les données du Projet Mewtwo sont corrompues. Des fragments suggèrent une manipulation génétique avancée qui a mal tourné.',
+        passiveBonus: {
+            type: 'type_damage',
+            typeTarget: 'Psychic',
+            value: 0.1,
+            description: '+10% dégâts contre Type Psy'
+        }
+    },
+    corrupted_memory_alpha: {
+        id: 'corrupted_memory_alpha',
+        name: 'corrupted_memory_alpha.dat',
+        displayName: 'Mémoire Corrompue Alpha',
+        encrypted: true,
+        decryptCost: 3000,
+        content: 'Une mémoire fragmentée révèle l\'existence d\'une entité supérieure qui manipule les données. Qui est vraiment derrière la corruption ?',
+        passiveBonus: {
+            type: 'shiny_rate',
+            value: 0.01,
+            description: '+1% chance Shiny'
+        }
+    }
+};
+
+// Table des types (simplifiée et renforcée)
+const TYPE_EFFECTIVENESS = {
+    // Trinité
+    'Fire': { strong: ['Grass'], weak: ['Water'] },
+    'Water': { strong: ['Fire'], weak: ['Grass'] },
+    'Grass': { strong: ['Water'], weak: ['Fire'] },
+    
+    // Spécial
+    'Electric': { strong: ['Water', 'Flying'], weak: ['Ground'] },
+    'Psychic': { strong: ['Fighting', 'Poison'], weak: ['Dark', 'Ghost'] },
+    'Rock': { strong: ['Fire', 'Flying'], weak: ['Water', 'Grass'] },
+    'Ground': { strong: ['Electric', 'Fire'], weak: ['Water', 'Grass'] },
+    'Ice': { strong: ['Grass', 'Ground'], weak: ['Fire'] },
+    'Fighting': { strong: ['Normal', 'Rock'], weak: ['Psychic', 'Flying'] },
+    'Poison': { strong: ['Grass'], weak: ['Psychic', 'Ground'] },
+    'Flying': { strong: ['Grass', 'Fighting'], weak: ['Electric', 'Rock'] },
+    'Bug': { strong: ['Grass', 'Psychic'], weak: ['Fire', 'Flying'] },
+    'Ghost': { strong: ['Psychic', 'Ghost'], weak: ['Dark'] },
+    'Dragon': { strong: ['Dragon'], weak: ['Ice', 'Dragon'] },
+    'Dark': { strong: ['Psychic', 'Ghost'], weak: ['Fighting', 'Bug'] },
+    'Steel': { strong: ['Rock', 'Ice'], weak: ['Fire', 'Ground'] },
+    'Fairy': { strong: ['Dragon', 'Dark'], weak: ['Poison', 'Steel'] },
+    'Normal': { strong: [], weak: ['Fighting'] }
+};
+
+// Fonction pour calculer l'efficacité des types
+function calculateTypeEffectiveness(attackerType, defenderTypes) {
+    let multiplier = 1.0;
+    let isGlancing = false;
+    
+    for (const defenderType of defenderTypes) {
+        const effectiveness = TYPE_EFFECTIVENESS[attackerType];
+        if (!effectiveness) continue;
+        
+        if (effectiveness.strong.includes(defenderType)) {
+            multiplier = 1.2; // +20% dégâts
+            break;
+        } else if (effectiveness.weak.includes(defenderType)) {
+            multiplier = 0.8; // -20% dégâts
+            // Chance de Glancing Hit
+            if (Math.random() < 0.3) {
+                isGlancing = true;
+                multiplier *= 0.5; // Dégâts réduits de moitié
+            }
+            break;
+        }
+    }
+    
+    return { multiplier, isGlancing };
+}
+
+// Fonction pour convertir un Pokémon en BattleUnit
+function createBattleUnit(pokemonId, isShiny = false) {
+    const rarity = getRarity(pokemonId);
+    const baseStats = BASE_STATS_BY_RARITY[rarity] || BASE_STATS_BY_RARITY.common;
+    const archetype = getPokemonArchetype(pokemonId);
+    const types = POKEMON_TYPES[pokemonId] || ['Normal'];
+    
+    // Récupérer le niveau Buddy
+    let buddyLevel = 1;
+    let isBuddy = false;
+    if (gameState.buddy && gameState.buddy.activeBuddyId === pokemonId) {
+        const buddy = gameState.buddy.buddies[pokemonId];
+        if (buddy) {
+            buddyLevel = buddy.level || 1;
+            isBuddy = true;
+        }
+    }
+    
+    // Calcul des stats finales
+    // Formule : Base * (1 + BuddyMultiplier) * TypeBonus
+    const buddyMultiplier = 1 + (buddyLevel * 0.1); // +10% par niveau
+    const typeBonus = 1.0; // À ajuster selon les bonus passifs
+    
+    const finalStats = {
+        hp: Math.round(baseStats.hp * buddyMultiplier * typeBonus),
+        atk: Math.round(baseStats.atk * buddyMultiplier * typeBonus),
+        def: Math.round(baseStats.def * buddyMultiplier * typeBonus),
+        spd: Math.round(baseStats.spd * buddyMultiplier * typeBonus)
+    };
+    
+    // Générer les skills selon l'archétype
+    const skills = ARCHETYPE_SKILLS[archetype].map(skill => ({
+        ...skill,
+        currentCooldown: 0
+    }));
+    
+    return {
+        id: pokemonId,
+        name: FRENCH_NAMES[pokemonId] || `Pokémon #${pokemonId}`,
+        types: types,
+        isShiny: isShiny,
+        isBuddy: isBuddy,
+        buddyLevel: buddyLevel,
+        archetype: archetype,
+        stats: finalStats,
+        currentHp: finalStats.hp,
+        maxHp: finalStats.hp,
+        atb: 0, // Attack Time Bar (0 à 100)
+        skills: skills,
+        statusEffects: [] // Buffs/Debuffs
+    };
+}
+
+// ===== FONCTIONS DE COMBAT BOSS =====
+
+// État du combat actuel
+let currentBattleState = null;
+let battleATBInterval = null;
+
+// Fonction pour afficher la page de sélection de Boss
+window.renderBossBattlePage = function() {
+    const container = document.getElementById('boss-battle-container');
+    if (!container) return;
+    
+    // Vérifier le déblocage
+    if (!gameState.modules.bossBattle || !gameState.modules.bossBattle.unlocked) {
+        if (gameState.level < 8) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: white;">
+                    <h2>🔒 Zone de Quarantaine Verrouillée</h2>
+                    <p style="margin-top: 20px; color: rgba(255,255,255,0.7);">
+                        Débloqué au niveau 8
+                    </p>
+                </div>
+            `;
+            return;
+        } else {
+            if (!gameState.modules.bossBattle) gameState.modules.bossBattle = {};
+            gameState.modules.bossBattle.unlocked = true;
+            saveGame();
+        }
+    }
+    
+    // Afficher la liste des Boss disponibles
+    const availableBosses = Object.values(BOSS_DATA).filter(boss => {
+        if (boss.minLevel && gameState.level < boss.minLevel) return false;
+        if (boss.region && !gameState.unlockedRegions.has(boss.region)) return false;
+        return true;
+    });
+    
+    let html = `
+        <div style="padding: 20px;">
+            <h1 style="text-align: center; color: #00ff9d; margin-bottom: 30px; font-family: 'Share Tech Mono', monospace;">
+                🛡️ PROTOCOLE DATA GUARDIAN
+            </h1>
+            
+            <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #00ff9d;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #e0e6ed;">Tickets Firewall:</span>
+                    <span style="color: #00ff9d; font-weight: bold; font-size: 1.2em;">
+                        ${gameState.bossBattle?.firewallTickets || 0}
+                    </span>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+    `;
+    
+    availableBosses.forEach(boss => {
+        const isLocked = (boss.minLevel && gameState.level < boss.minLevel) || 
+                       (boss.region && !gameState.unlockedRegions.has(boss.region));
+        
+        html += `
+            <div style="background: rgba(20, 25, 40, 0.85); border: 2px solid ${isLocked ? '#444' : '#ff0055'}; 
+                        border-radius: 12px; padding: 20px; ${isLocked ? 'opacity: 0.6;' : ''}">
+                <h3 style="color: ${isLocked ? '#666' : '#ff0055'}; margin-bottom: 10px;">
+                    ${boss.name}
+                </h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 0.9em; margin-bottom: 15px;">
+                    ${boss.description || 'Data Guardian corrompu'}
+                </p>
+                
+                ${isLocked ? `
+                    <div style="color: #888; text-align: center; padding: 10px;">
+                        🔒 ${boss.minLevel ? `Niveau ${boss.minLevel} requis` : ''}
+                    </div>
+                ` : `
+                    <button onclick="window.selectBossForBattle('${boss.id}')" 
+                            style="width: 100%; padding: 12px; background: #ff0055; 
+                                   color: white; border: none; border-radius: 6px; 
+                                   cursor: pointer; font-weight: bold;">
+                        COMPILER & COMBATTRE
+                    </button>
+                `}
+            </div>
+        `;
+    });
+    
+    html += `</div></div>`;
+    container.innerHTML = html;
+};
+
+// Note: Les fonctions de combat complètes seront ajoutées dans la prochaine étape
+// (selectBossForBattle, showTeamBuilder, startBossBattle, initializeBossBattle, etc.)
+
 // ===== CONFIGURATION SYSTÈME D'ŒUFS (V8.0) =====
 const EGG_CONFIG = {
     tiers: {
@@ -225,6 +608,192 @@ const CATCHBOT_CONFIG = {
     interval: 60 * 60 * 1000, // 1 capture toutes les heures
     shinyChance: 0.01, // 1% chance shiny (faible)
     storageLimit: 24 // Max 24h de stockage
+};
+
+// ===== CONFIGURATION BOSS BATTLE - DATA GUARDIANS =====
+const BOSS_DATA = {
+    // Boss Kanto (Niveau 10+)
+    'mewtwo_corrupted': {
+        id: 'mewtwo_corrupted',
+        name: '/// MEWTWO_PRIME ///',
+        pokemonId: 150, // Mewtwo
+        level: 1,
+        hp: 50000,
+        maxHp: 50000,
+        minLevel: 10,
+        region: 'Kanto',
+        description: 'Le premier Data Guardian. Les données de Mewtwo ont été corrompues par MissingNo.',
+        rewards: {
+            shinyTokens: { min: 50, max: 100 },
+            ancientData: { min: 0, max: 2, chance: 0.3 },
+            coins: 5000,
+            xp: 1000
+        },
+        loreFile: 'project_mewtwo_log.corrupt',
+        attackPattern: 'aggressive' // aggressive, defensive, balanced
+    },
+    // Boss Johto (Niveau 20+, Johto débloqué)
+    'lugia_corrupted': {
+        id: 'lugia_corrupted',
+        name: '/// LUGIA_GUARDIAN ///',
+        pokemonId: 249, // Lugia
+        level: 2,
+        hp: 75000,
+        maxHp: 75000,
+        minLevel: 20,
+        region: 'Johto',
+        description: 'Le gardien des mers de données. Ses archives océaniques sont verrouillées.',
+        rewards: {
+            shinyTokens: { min: 75, max: 150 },
+            ancientData: { min: 1, max: 3, chance: 0.4 },
+            coins: 7500,
+            xp: 1500
+        },
+        loreFile: 'archive_ocean_404.enc',
+        attackPattern: 'defensive'
+    },
+    // Boss Hoenn (Niveau 30+, Hoenn débloqué)
+    'rayquaza_corrupted': {
+        id: 'rayquaza_corrupted',
+        name: '/// RAYQUAZA_SKYGUARD ///',
+        pokemonId: 384, // Rayquaza
+        level: 3,
+        hp: 100000,
+        maxHp: 100000,
+        minLevel: 30,
+        region: 'Hoenn',
+        description: 'Le protecteur du ciel de données. Son code source est fragmenté.',
+        rewards: {
+            shinyTokens: { min: 100, max: 200 },
+            ancientData: { min: 2, max: 5, chance: 0.5 },
+            coins: 10000,
+            xp: 2000
+        },
+        loreFile: 'sky_domain_log.enc',
+        attackPattern: 'balanced'
+    }
+};
+
+// ===== CONFIGURATION LORE FILES =====
+const LORE_FILES_DATA = {
+    'project_mewtwo_log.corrupt': {
+        id: 'project_mewtwo_log.corrupt',
+        name: 'project_mewtwo_log.corrupt',
+        displayName: 'Journal Projet Mewtwo',
+        decryptCost: 2000, // EO
+        content: [
+            'Log 0x01 : Le Professeur Chen a créé Mewtwo à partir des données de Mew.',
+            'Log 0x02 : L\'expérience a réussi, mais les données sont instables.',
+            'Log 0x03 : MissingNo a infecté le fichier source. Corruption détectée.',
+            'Log 0x04 : Mewtwo est devenu un Data Guardian, protégeant les archives.',
+            'Log 0x05 : Pour le restaurer, il faut purifier ses données corrompues.'
+        ],
+        passiveBonus: {
+            id: 'mewtwo_insight',
+            name: 'Insight Mewtwo',
+            description: '+5% XP contre les Pokémon Psychiques',
+            type: 'xp_boost',
+            targetType: 'Psychic',
+            value: 0.05
+        }
+    },
+    'archive_ocean_404.enc': {
+        id: 'archive_ocean_404.enc',
+        name: 'archive_ocean_404.enc',
+        displayName: 'Archive Océan 404',
+        decryptCost: 3000,
+        content: [
+            'Archive 0x44 : Les données océaniques sont les plus anciennes.',
+            'Archive 0x45 : Lugia protège les archives marines depuis des millénaires.',
+            'Archive 0x46 : La corruption a atteint les profondeurs. Intervention requise.',
+            'Archive 0x47 : Les Pokémon Eau émettent une signature unique.',
+            'Archive 0x48 : Décrypter cette archive révèle les secrets des océans.'
+        ],
+        passiveBonus: {
+            id: 'ocean_mastery',
+            name: 'Maîtrise Océanique',
+            description: '+10% taux de capture contre Type Eau',
+            type: 'capture_boost',
+            targetType: 'Water',
+            value: 0.10
+        }
+    },
+    'sky_domain_log.enc': {
+        id: 'sky_domain_log.enc',
+        name: 'sky_domain_log.enc',
+        displayName: 'Log Domaine Céleste',
+        decryptCost: 5000,
+        content: [
+            'Sky Log 0x01 : Rayquaza surveille le ciel de données.',
+            'Sky Log 0x02 : Les archives célestes sont les plus pures.',
+            'Sky Log 0x03 : La corruption a créé des tempêtes de données.',
+            'Sky Log 0x04 : Seuls les Archivistes les plus expérimentés peuvent accéder.',
+            'Sky Log 0x05 : Ce log révèle les secrets des légendaires volants.'
+        ],
+        passiveBonus: {
+            id: 'sky_guardian',
+            name: 'Gardien du Ciel',
+            description: '+15% dégâts contre les Pokémon Volants',
+            type: 'damage_boost',
+            targetType: 'Flying',
+            value: 0.15
+        }
+    },
+    'journal_chen_404.enc': {
+        id: 'journal_chen_404.enc',
+        name: 'journal_chen_404.enc',
+        displayName: 'Journal Prof Chen (404)',
+        decryptCost: 1500,
+        content: [
+            'Journal Entry 1 : J\'ai découvert que les Pokémon sont des données vivantes.',
+            'Journal Entry 2 : MissingNo est une erreur dans le code source universel.',
+            'Journal Entry 3 : Pour restaurer le système, il faut collecter tous les fragments.',
+            'Journal Entry 4 : Porygon-Z est ma création la plus avancée.',
+            'Journal Entry 5 : L\'Archiviste est la clé de la restauration.'
+        ],
+        passiveBonus: {
+            id: 'chen_wisdom',
+            name: 'Sagesse de Chen',
+            description: '+3% XP global',
+            type: 'xp_global',
+            value: 0.03
+        }
+    }
+};
+
+// ===== CONFIGURATION SKILLS POKÉMON =====
+const BOSS_SKILLS_DATA = {
+    // Skills génériques par type
+    'water': [
+        { id: 'hydro_cannon', name: 'Hydro-Canon', icon: '🌊', cooldown: 3, damageMultiplier: 1.5, description: 'Attaque Eau puissante' },
+        { id: 'aqua_jet', name: 'Aqua-Jet', icon: '💧', cooldown: 2, damageMultiplier: 1.2, description: 'Attaque rapide' },
+        { id: 'surf', name: 'Surf', icon: '🌊', cooldown: 4, damageMultiplier: 1.8, description: 'Vague dévastatrice' }
+    ],
+    'fire': [
+        { id: 'flamethrower', name: 'Lance-Flamme', icon: '🔥', cooldown: 3, damageMultiplier: 1.5, description: 'Attaque Feu puissante' },
+        { id: 'fire_blast', name: 'Déflagration', icon: '💥', cooldown: 4, damageMultiplier: 2.0, description: 'Explosion de feu' },
+        { id: 'ember', name: 'Flammèche', icon: '✨', cooldown: 1, damageMultiplier: 1.0, description: 'Attaque basique' }
+    ],
+    'electric': [
+        { id: 'thunderbolt', name: 'Tonnerre', icon: '⚡', cooldown: 3, damageMultiplier: 1.5, description: 'Éclair puissant' },
+        { id: 'thunder', name: 'Fatal-Foudre', icon: '🌩️', cooldown: 4, damageMultiplier: 2.0, description: 'Orage dévastateur' },
+        { id: 'spark', name: 'Étincelle', icon: '✨', cooldown: 1, damageMultiplier: 1.0, description: 'Attaque basique' }
+    ],
+    'grass': [
+        { id: 'solar_beam', name: 'Lance-Soleil', icon: '☀️', cooldown: 4, damageMultiplier: 2.0, description: 'Rayon solaire' },
+        { id: 'leaf_blade', name: 'Lame-Feuille', icon: '🍃', cooldown: 2, damageMultiplier: 1.3, description: 'Lame végétale' },
+        { id: 'razor_leaf', name: 'Tranch\'Herbe', icon: '🌿', cooldown: 1, damageMultiplier: 1.0, description: 'Attaque basique' }
+    ],
+    'psychic': [
+        { id: 'psychic', name: 'Psyko', icon: '🔮', cooldown: 3, damageMultiplier: 1.5, description: 'Pouvoir psychique' },
+        { id: 'psyshock', name: 'Choc Psy', icon: '💫', cooldown: 2, damageMultiplier: 1.3, description: 'Choc mental' },
+        { id: 'confusion', name: 'Choc Mental', icon: '✨', cooldown: 1, damageMultiplier: 1.0, description: 'Attaque basique' }
+    ],
+    'default': [
+        { id: 'tackle', name: 'Charge', icon: '⚔️', cooldown: 1, damageMultiplier: 1.0, description: 'Attaque basique' },
+        { id: 'quick_attack', name: 'Vive-Attaque', icon: '💨', cooldown: 2, damageMultiplier: 1.2, description: 'Attaque rapide' },
+        { id: 'hyper_beam', name: 'Ultralaser', icon: '💥', cooldown: 5, damageMultiplier: 2.5, description: 'Attaque ultime' }
+    ]
 };
 
 // ===== GENESIS REBOOT - SYSTÈME NARRATIF PORYGON-Z =====
@@ -1967,14 +2536,14 @@ function updateSystemVisuals() {
 }
 
 const ROGUE_EVENTS = {
-    encounter:{type:'encounter',weight:40,icon:'⚔️',name:'Rencontre Pokémon'},
-    item:{type:'item',weight:20,icon:'🎁',name:'Trouvaille d\'objet'},
-    trap:{type:'trap',weight:10,icon:'💥',name:'Piège'},
-    blessing:{type:'blessing',weight:6,icon:'💙',name:'Bénédiction'},
-    heal:{type:'heal',weight:8,icon:'❤️',name:'Soin'},
-    shop:{type:'shop',weight:8,icon:'🏪',name:'Boutique'},
-    rest:{type:'rest',weight:8,icon:'💤',name:'Repos'},
-    boss:{type:'boss',weight:0,icon:'👑',name:'Boss'}
+    encounter:{type:'encounter',weight:40,icon:'rogue_combat',name:'Rencontre Pokémon'},
+    item:{type:'item',weight:20,icon:'rarebox',name:'Trouvaille d\'objet'},
+    trap:{type:'trap',weight:10,icon:'rogue_trap',name:'Piège'},
+    blessing:{type:'blessing',weight:6,icon:'shiny-charm',name:'Bénédiction'},
+    heal:{type:'heal',weight:8,icon:'rogue_heal',name:'Soin'},
+    shop:{type:'shop',weight:8,icon:'rogue_merchant',name:'Boutique'},
+    rest:{type:'rest',weight:8,icon:'rogue_rest',name:'Repos'},
+    boss:{type:'boss',weight:0,icon:'rogue_boss',name:'Boss'}
 };
 
 // ===== POKÉ-POKER : FONDATIONS =====
@@ -2028,26 +2597,26 @@ const HAND_TYPES = {
 
 // Configuration des Antes (8 badges + Ligue)
 const ANTES_CONFIG = [
-    { ante_number: 1, badge_name: 'Boulder Badge', badge_name_fr: 'Badge Roche', badge_icon: '🪨', boss_name: 'Onix', boss_modifier: 'Rock Shield: -10% mult', blinds: [{ type: 'small', target_base: 500 }, { type: 'big', target_base: 750 }, { type: 'boss', target_base: 1250 }] },
-    { ante_number: 2, badge_name: 'Cascade Badge', badge_name_fr: 'Badge Cascade', badge_icon: '💧', boss_name: 'Starmie', boss_modifier: 'Water Veil: Water cards +50% chips', blinds: [{ type: 'small', target_base: 800 }, { type: 'big', target_base: 1200 }, { type: 'boss', target_base: 2000 }] },
-    { ante_number: 3, badge_name: 'Thunder Badge', badge_name_fr: 'Badge Foudre', badge_icon: '⚡', boss_name: 'Raichu', boss_modifier: 'Static: All pairs give ×2 mult', blinds: [{ type: 'small', target_base: 1500 }, { type: 'big', target_base: 2250 }, { type: 'boss', target_base: 3750 }] },
-    { ante_number: 4, badge_name: 'Rainbow Badge', badge_name_fr: 'Badge Prisme', badge_icon: '🌈', boss_name: 'Victreebel', boss_modifier: 'Synthesis: Grass cards +100 chips', blinds: [{ type: 'small', target_base: 2500 }, { type: 'big', target_base: 3750 }, { type: 'boss', target_base: 6250 }] },
-    { ante_number: 5, badge_name: 'Soul Badge', badge_name_fr: 'Badge Âme', badge_icon: '☠️', boss_name: 'Arbok', boss_modifier: 'Poison Point: -1 discard', blinds: [{ type: 'small', target_base: 4000 }, { type: 'big', target_base: 6000 }, { type: 'boss', target_base: 10000 }] },
-    { ante_number: 6, badge_name: 'Volcano Badge', badge_name_fr: 'Badge Volcan', badge_icon: '🔥', boss_name: 'Arcanine', boss_modifier: 'Blaze: Fire flushes ×3 mult', blinds: [{ type: 'small', target_base: 6500 }, { type: 'big', target_base: 9750 }, { type: 'boss', target_base: 16250 }] },
-    { ante_number: 7, badge_name: 'Marsh Badge', badge_name_fr: 'Badge Marais', badge_icon: '🧠', boss_name: 'Alakazam', boss_modifier: 'Psychic: Reveal all deck cards', blinds: [{ type: 'small', target_base: 10000 }, { type: 'big', target_base: 15000 }, { type: 'boss', target_base: 25000 }] },
-    { ante_number: 8, badge_name: 'Earth Badge', badge_name_fr: 'Badge Terre', badge_icon: '🌍', boss_name: 'Rhydon', boss_modifier: 'Earthquake: -1 hand', blinds: [{ type: 'small', target_base: 15000 }, { type: 'big', target_base: 22500 }, { type: 'boss', target_base: 37500 }] }
+    { ante_number: 1, badge_name: 'Boulder Badge', badge_name_fr: 'Badge Roche', badge_icon: 'badge_rock', boss_name: 'Onix', boss_modifier: 'Rock Shield: -10% mult', blinds: [{ type: 'small', target_base: 500 }, { type: 'big', target_base: 750 }, { type: 'boss', target_base: 1250 }] },
+    { ante_number: 2, badge_name: 'Cascade Badge', badge_name_fr: 'Badge Cascade', badge_icon: 'badge_water', boss_name: 'Starmie', boss_modifier: 'Water Veil: Water cards +50% chips', blinds: [{ type: 'small', target_base: 800 }, { type: 'big', target_base: 1200 }, { type: 'boss', target_base: 2000 }] },
+    { ante_number: 3, badge_name: 'Thunder Badge', badge_name_fr: 'Badge Foudre', badge_icon: 'badge_thunder', boss_name: 'Raichu', boss_modifier: 'Static: All pairs give ×2 mult', blinds: [{ type: 'small', target_base: 1500 }, { type: 'big', target_base: 2250 }, { type: 'boss', target_base: 3750 }] },
+    { ante_number: 4, badge_name: 'Rainbow Badge', badge_name_fr: 'Badge Prisme', badge_icon: 'badge_rainbow', boss_name: 'Victreebel', boss_modifier: 'Synthesis: Grass cards +100 chips', blinds: [{ type: 'small', target_base: 2500 }, { type: 'big', target_base: 3750 }, { type: 'boss', target_base: 6250 }] },
+    { ante_number: 5, badge_name: 'Soul Badge', badge_name_fr: 'Badge Âme', badge_icon: 'badge_soul', boss_name: 'Arbok', boss_modifier: 'Poison Point: -1 discard', blinds: [{ type: 'small', target_base: 4000 }, { type: 'big', target_base: 6000 }, { type: 'boss', target_base: 10000 }] },
+    { ante_number: 6, badge_name: 'Volcano Badge', badge_name_fr: 'Badge Volcan', badge_icon: 'badge_volcano', boss_name: 'Arcanine', boss_modifier: 'Blaze: Fire flushes ×3 mult', blinds: [{ type: 'small', target_base: 6500 }, { type: 'big', target_base: 9750 }, { type: 'boss', target_base: 16250 }] },
+    { ante_number: 7, badge_name: 'Marsh Badge', badge_name_fr: 'Badge Marais', badge_icon: 'badge_marsh', boss_name: 'Alakazam', boss_modifier: 'Psychic: Reveal all deck cards', blinds: [{ type: 'small', target_base: 10000 }, { type: 'big', target_base: 15000 }, { type: 'boss', target_base: 25000 }] },
+    { ante_number: 8, badge_name: 'Earth Badge', badge_name_fr: 'Badge Terre', badge_icon: 'badge_earth', boss_name: 'Rhydon', boss_modifier: 'Earthquake: -1 hand', blinds: [{ type: 'small', target_base: 15000 }, { type: 'big', target_base: 22500 }, { type: 'boss', target_base: 37500 }] }
 ];
 
 // Configuration Ligue Pokémon
 const LEAGUE_CONFIG = {
     unlocked_after_badges: 8,
     elite_four: [
-        { name: 'Lorelei', name_fr: 'Lorelei', type_specialty: 'Ice', icon: '❄️', boss_pokemon: 'Lapras', modifier: 'Frozen Deck: 20% cards frozen', target_multiplier: 2.0 },
-        { name: 'Bruno', name_fr: 'Bruno', type_specialty: 'Fighting', icon: '🥊', boss_pokemon: 'Machamp', modifier: 'No Holds Barred: All hands -1 card', target_multiplier: 2.5 },
-        { name: 'Agatha', name_fr: 'Agatha', type_specialty: 'Ghost', icon: '👻', boss_pokemon: 'Gengar', modifier: 'Curse: Discards cost 100 chips', target_multiplier: 3.0 },
-        { name: 'Lance', name_fr: 'Peter', type_specialty: 'Dragon', icon: '🐉', boss_pokemon: 'Dragonite', modifier: 'Dragon Rage: Boss has 3 phases', target_multiplier: 4.0 }
+        { name: 'Lorelei', name_fr: 'Lorelei', type_specialty: 'Ice', icon: 'elite_ice', boss_pokemon: 'Lapras', modifier: 'Frozen Deck: 20% cards frozen', target_multiplier: 2.0 },
+        { name: 'Bruno', name_fr: 'Bruno', type_specialty: 'Fighting', icon: 'elite_fighting', boss_pokemon: 'Machamp', modifier: 'No Holds Barred: All hands -1 card', target_multiplier: 2.5 },
+        { name: 'Agatha', name_fr: 'Agatha', type_specialty: 'Ghost', icon: 'elite_ghost', boss_pokemon: 'Gengar', modifier: 'Curse: Discards cost 100 chips', target_multiplier: 3.0 },
+        { name: 'Lance', name_fr: 'Peter', type_specialty: 'Dragon', icon: 'elite_dragon', boss_pokemon: 'Dragonite', modifier: 'Dragon Rage: Boss has 3 phases', target_multiplier: 4.0 }
     ],
-    champion: { name: 'Blue', name_fr: 'Blue', icon: '👑', boss_pokemon: 'Mewtwo', modifier: 'Champion: All modifiers active', target_multiplier: 5.0, hands_allowed: 5, blinds_count: 5 }
+    champion: { name: 'Blue', name_fr: 'Blue', icon: 'champion', boss_pokemon: 'Mewtwo', modifier: 'Champion: All modifiers active', target_multiplier: 5.0, hands_allowed: 5, blinds_count: 5 }
 };
 
 // Jokers COMMON (10)
@@ -6547,34 +7116,183 @@ function createGoldParticles(container, count) {
 let runState = null;
 
 const ITEM_API_MAP = {
+    // Pokéballs
     pokeball: 'poke-ball',
     greatball: 'great-ball',
     ultraball: 'ultra-ball',
     masterball: 'master-ball',
     diveball: 'dive-ball',
+    // Baies
     framby: 'razz-berry',
     pinap: 'pinap-berry',
     ceriz: 'cheri-berry',
+    // Pierres d'évolution
     fire_stone: 'fire-stone',
     water_stone: 'water-stone',
     thunder_stone: 'thunder-stone',
     moon_stone: 'moon-stone',
-    leaf_stone: 'leaf-stone'
+    leaf_stone: 'leaf-stone',
+    // Monnaies & Ressources
+    coins: 'amulet-coin',
+    shard_common: 'blue-shard',
+    shard_rare: 'comet-shard',
+    shiny_token: 'shiny-charm',
+    energy_onirique: 'cell-battery',
+    ancient_data: 'old-amber',
+    processor_chips: 'dubious-disc',
+    memory_chips: 'dubious-disc',
+    // Lootboxes
+    lootbox: 'explorer-kit',
+    rarebox: 'town-map',
+    suprarebox: 'treasure-chest',
+    ultrabox: 'tm-case',
+    // Expédition (Rogue)
+    expedition_ticket: 'contest-pass',
+    rogue_combat: 'vs-seeker',
+    rogue_chest: 'dowsing-machine',
+    rogue_merchant: 'coin-case',
+    rogue_trap: 'smoke-ball',
+    rogue_sanctuary: 'odd-keystone',
+    rogue_heal: 'max-potion',
+    rogue_rest: 'poke-doll',
+    rogue_boss: 'kings-rock',
+    // Centre de Recherche
+    chercheur: 'exp-share',
+    auto_clicker: 'porygon-z',
+    overclock: 'x-speed',
+    virus_scan: 'guard-spec',
+    // Types (Gems)
+    type_fire: 'fire-gem',
+    type_water: 'water-gem',
+    type_grass: 'grass-gem',
+    type_electric: 'electric-gem',
+    type_psychic: 'psychic-gem',
+    type_ghost: 'ghost-gem',
+    // Badges (utilisent des items similaires)
+    badge_rock: 'hard-stone',
+    badge_water: 'mystic-water',
+    badge_thunder: 'magnet',
+    badge_rainbow: 'rainbow-wing',
+    badge_soul: 'spell-tag',
+    badge_volcano: 'charcoal',
+    badge_marsh: 'twisted-spoon',
+    badge_earth: 'soft-sand',
+    // Elite Four & Champion
+    elite_ice: 'never-melt-ice',
+    elite_fighting: 'black-belt',
+    elite_ghost: 'spell-tag',
+    elite_dragon: 'dragon-scale',
+    champion: 'kings-rock',
+    // Autres items
+    joker: 'tm-normal',
+    booster_tcg: 'card-key'
+};
+
+// Mapping des émojis vers les IDs d'items API (pour compatibilité)
+const EMOJI_TO_ITEM_ID = {
+    '💰': 'coins',
+    '💎': 'shard_common',
+    '✨': 'shiny_token',
+    '⚡': 'energy_onirique',
+    '🔮': 'ancient_data',
+    '💾': 'processor_chips',
+    '📦': 'lootbox',
+    '🎁': 'rarebox',
+    '🧰': 'ultrabox',
+    '⚔️': 'rogue_combat',
+    '🏪': 'rogue_merchant',
+    '⚠️': 'rogue_trap',
+    '👑': 'rogue_boss',
+    '🎫': 'expedition_ticket',
+    '🍓': 'framby',
+    '🍍': 'pinap',
+    '🍒': 'ceriz',
+    '🔥': 'type_fire',
+    '💧': 'type_water',
+    '🌿': 'type_grass',
+    '🧠': 'type_psychic',
+    '👻': 'type_ghost',
+    '🃏': 'joker',
+    '🎴': 'booster_tcg'
 };
 
 function getItemIcon(itemId){
+    // Si c'est un émoji, le convertir en ID d'item
+    if (EMOJI_TO_ITEM_ID[itemId]) {
+        itemId = EMOJI_TO_ITEM_ID[itemId];
+    }
+    
+    // Si l'ID est dans le mapping API, retourner l'URL
     if(ITEM_API_MAP[itemId]){
         return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${ITEM_API_MAP[itemId]}.png`;
     }
-    return ALL_ITEMS[itemId]?.icon || '📦';
+    
+    // Si l'ID ressemble déjà à un nom de fichier API (format kebab-case)
+    if(/^[a-z0-9-]+$/.test(itemId) && !itemId.includes('_')) {
+        return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${itemId}.png`;
+    }
+    
+    // Fallback : chercher dans ALL_ITEMS
+    const fallbackIcon = ALL_ITEMS[itemId]?.icon;
+    if (fallbackIcon && EMOJI_TO_ITEM_ID[fallbackIcon]) {
+        // Si l'icône dans ALL_ITEMS est un émoji mappé, utiliser l'API
+        const mappedId = EMOJI_TO_ITEM_ID[fallbackIcon];
+        if (ITEM_API_MAP[mappedId]) {
+            return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${ITEM_API_MAP[mappedId]}.png`;
+        }
+    }
+    
+    // Dernier fallback : retourner l'emoji ou un placeholder
+    return fallbackIcon || '📦';
 }
 
 function getItemIconDisplay(itemId, size = '1em'){
     const icon = getItemIcon(itemId);
     if(icon.startsWith('http')){
-        return `<img src="${icon}" style="width: ${size}; height: ${size}; image-rendering: pixelated; vertical-align: middle; display: inline-block;" alt="${ALL_ITEMS[itemId]?.name || itemId}">`;
+        return `<img src="${icon}" style="width: ${size}; height: ${size}; image-rendering: pixelated; vertical-align: middle; display: inline-block; object-fit: contain; flex-shrink: 0;" alt="${ALL_ITEMS[itemId]?.name || itemId}">`;
     }
     return icon;
+}
+
+// Fonction helper pour convertir les émojis en images API dans les textes
+function convertEmojisToIcons(text, size = '1em') {
+    if (!text) return text;
+    
+    // Mapping des émojis vers les IDs d'items
+    const emojiReplacements = {
+        '💰': () => getItemIconDisplay('coins', size),
+        '💎': () => getItemIconDisplay('shard_common', size),
+        '✨': () => getItemIconDisplay('shiny_token', size),
+        '⚡': () => getItemIconDisplay('energy_onirique', size),
+        '🔮': () => getItemIconDisplay('ancient_data', size),
+        '💾': () => getItemIconDisplay('processor_chips', size),
+        '📦': () => getItemIconDisplay('lootbox', size),
+        '🎁': () => getItemIconDisplay('rarebox', size),
+        '🧰': () => getItemIconDisplay('ultrabox', size),
+        '⚔️': () => getItemIconDisplay('rogue_combat', size),
+        '🏪': () => getItemIconDisplay('rogue_merchant', size),
+        '⚠️': () => getItemIconDisplay('rogue_trap', size),
+        '👑': () => getItemIconDisplay('rogue_boss', size),
+        '🎫': () => getItemIconDisplay('expedition_ticket', size),
+        '🍓': () => getItemIconDisplay('framby', size),
+        '🍍': () => getItemIconDisplay('pinap', size),
+        '🍒': () => getItemIconDisplay('ceriz', size),
+        '🔥': () => getItemIconDisplay('type_fire', size),
+        '💧': () => getItemIconDisplay('type_water', size),
+        '🌿': () => getItemIconDisplay('type_grass', size),
+        '🧠': () => getItemIconDisplay('type_psychic', size),
+        '👻': () => getItemIconDisplay('type_ghost', size),
+        '🃏': () => getItemIconDisplay('joker', size),
+        '🎴': () => getItemIconDisplay('booster_tcg', size)
+    };
+    
+    let result = text;
+    Object.keys(emojiReplacements).forEach(emoji => {
+        const regex = new RegExp(emoji.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+        result = result.replace(regex, emojiReplacements[emoji]());
+    });
+    
+    return result;
 }
 
 /* =========================================
@@ -6647,30 +7365,47 @@ const LOOTBOX_TIERS = {
     }
 };
 
+// Fonction pour obtenir la description technique d'un item (avec suffixes lore)
+function getItemTechnicalDesc(itemId) {
+    const item = ALL_ITEMS[itemId];
+    if (!item) return '';
+    
+    const baseDesc = item.desc || '';
+    const technicalSuffixes = {
+        pokeball: ' | Protocole: capture_base.v1',
+        greatball: ' | Protocole: capture_enhanced.v2',
+        ultraball: ' | Protocole: capture_ultra.v3',
+        masterball: ' | Protocole: capture_master.prime | Status: UNBREAKABLE',
+        diveball: ' | Protocole: capture_aqua.special | Type: Water',
+    };
+    
+    return baseDesc + (technicalSuffixes[itemId] || '');
+}
+
 const ALL_ITEMS = {
-    pokeball:{name:'Poké Ball x10',icon:'⚾',desc:'Ball de base (50%)',price:500,qty:10},
-    greatball:{name:'Super Ball x5',icon:'🔵',desc:'Ball améliorée (70%)',price:1000,qty:5},
-    ultraball:{name:'Hyper Ball x5',icon:'⚫',desc:'Ball puissante (90%)',price:2400,qty:5},
-    masterball:{name:'Master Ball x1',icon:'💜',desc:'100% garanti',price:10000,qty:1},
-    diveball:{name:'Scuba Ball x5',icon:'💧',desc:'Bonus eau (×1.5)',price:500,qty:5},
-    framby:{name:'Baie Framby x5',icon:'🍓',desc:'+50% capture',price:1000,qty:5},
-    pinap:{name:'Baie Pinap x5',icon:'🍍',desc:'×2 coins si capture',price:600,qty:5},
-    ceriz:{name:'Baie Ceriz x3',icon:'🍒',desc:'+100% capture Shiny',price:2000,qty:3},
-    incensefleur:{name:'Encens Mystique',icon:'🌀',desc:'+20% rares (10min)',price:2000,qty:1},
-    marin_lure:{name:'Appât Marin',icon:'🪸',desc:'×2 captures eau (10min)',price:1200,qty:1},
-    exp_charm:{name:'Amulette Exp',icon:'📘',desc:'+25% XP (15min)',price:1500,qty:1},
-    lucky_charm:{name:'Talisman Chanceux',icon:'🍀',desc:'+0.5% shiny (30min)',price:3500,qty:1},
-    charm_collection:{name:'Charm Collection',icon:'💎',desc:'+10% nouveau Pokémon (20mn)',price:4000,qty:1},
-    legendary_radar:{name:'Radar Légendaire',icon:'🧭',desc:'Rencontre légendaire',price:0,qty:1},
-    fire_stone:{name:'Pierre Feu',icon:'🔥',desc:'Évolue en feu',price:2500,qty:1},
-    water_stone:{name:'Pierre Eau',icon:'💧',desc:'Évolue en eau',price:2500,qty:1},
-    thunder_stone:{name:'Pierre Foudre',icon:'⚡',desc:'Évolue électrik',price:2500,qty:1},
-    moon_stone:{name:'Pierre Lune',icon:'🌙',desc:'Évolue sous lune',price:2500,qty:1},
-    leaf_stone:{name:'Pierre Plante',icon:'🍃',desc:'Évolue plante',price:2500,qty:1},
-    lootbox:{name:'Lootbox',icon:'📦',desc:'Items variés + Chance de Coins & Tickets',price:800,qty:1},
-    rarebox:{name:'Rare Box',icon:'🎁',desc:'Items Rares + Shards & Coins garantis',price:2500,qty:1},
-    suprarebox:{name:'Super Rare Box',icon:'💎',desc:'Objets Premium + Shiny Tokens garantis',price:7000,qty:1},
-    ultrabox:{name:'Masterbox',icon:'🧰',desc:'Le top du top. Jackpot Masterball possible !',price:20000,qty:1},
+    pokeball:{name:'Poké Ball x10',icon:'pokeball',desc:'Ball de base (50%)',price:500,qty:10},
+    greatball:{name:'Super Ball x5',icon:'greatball',desc:'Ball améliorée (70%)',price:1000,qty:5},
+    ultraball:{name:'Hyper Ball x5',icon:'ultraball',desc:'Ball puissante (90%)',price:2400,qty:5},
+    masterball:{name:'Master Ball x1',icon:'masterball',desc:'100% garanti',price:10000,qty:1},
+    diveball:{name:'Scuba Ball x5',icon:'diveball',desc:'Bonus eau (×1.5)',price:500,qty:5},
+    framby:{name:'Baie Framby x5',icon:'framby',desc:'+50% capture',price:1000,qty:5},
+    pinap:{name:'Baie Pinap x5',icon:'pinap',desc:'×2 coins si capture',price:600,qty:5},
+    ceriz:{name:'Baie Ceriz x3',icon:'ceriz',desc:'+100% capture Shiny',price:2000,qty:3},
+    incensefleur:{name:'Encens Mystique',icon:'full-incense',desc:'+20% rares (10min)',price:2000,qty:1},
+    marin_lure:{name:'Appât Marin',icon:'super-rod',desc:'×2 captures eau (10min)',price:1200,qty:1},
+    exp_charm:{name:'Amulette Exp',icon:'exp-share',desc:'+25% XP (15min)',price:1500,qty:1},
+    lucky_charm:{name:'Talisman Chanceux',icon:'lucky-egg',desc:'+0.5% shiny (30min)',price:3500,qty:1},
+    charm_collection:{name:'Charm Collection',icon:'shiny-charm',desc:'+10% nouveau Pokémon (20mn)',price:4000,qty:1},
+    legendary_radar:{name:'Radar Légendaire',icon:'vs-seeker',desc:'Rencontre légendaire',price:0,qty:1},
+    fire_stone:{name:'Pierre Feu',icon:'fire_stone',desc:'Évolue en feu',price:2500,qty:1},
+    water_stone:{name:'Pierre Eau',icon:'water_stone',desc:'Évolue en eau',price:2500,qty:1},
+    thunder_stone:{name:'Pierre Foudre',icon:'thunder_stone',desc:'Évolue électrik',price:2500,qty:1},
+    moon_stone:{name:'Pierre Lune',icon:'moon_stone',desc:'Évolue sous lune',price:2500,qty:1},
+    leaf_stone:{name:'Pierre Plante',icon:'leaf_stone',desc:'Évolue plante',price:2500,qty:1},
+    lootbox:{name:'Lootbox',icon:'lootbox',desc:'Items variés + Chance de Coins & Tickets',price:800,qty:1},
+    rarebox:{name:'Rare Box',icon:'rarebox',desc:'Items Rares + Shards & Coins garantis',price:2500,qty:1},
+    suprarebox:{name:'Super Rare Box',icon:'suprarebox',desc:'Objets Premium + Shiny Tokens garantis',price:7000,qty:1},
+    ultrabox:{name:'Masterbox',icon:'ultrabox',desc:'Le top du top. Jackpot Masterball possible !',price:20000,qty:1},
     mystery_egg:{name:'Œuf Mystère',icon:'🥚',desc:'Pokémon autre région',price:10000,qty:1},
     // Trésors de pêche (vendables)
     pearl:{name:'Perle',icon:'⚪',desc:'Une jolie perle. Se vend bon prix.',price:0,qty:1,sellPrice:1000},
@@ -7117,7 +7852,7 @@ const SPECIAL_COLLECTIONS = {
     mew:{name:'Mew & Mewtwo',pokemon:[150,151],icon:'💎'}
 };
 
-let gameState = {coins:3000,level:1,xp:0,xpToNext:250,captured:new Set(),shinies:new Set(),evolved:new Set(),capturedCount:{},totalCaught:0,streak:0,bestStreak:0,blindBoxUsed:0,blindBoxSlots:5,blindBoxBonus:0,blindBoxResetTime:null,totalBlindBoxOpened:0,blindBoxPity:0,blindBoxHistory:[],captureHistory:[],fishingHistory:[],lastReset:Date.now(),lastLogin:Date.now(),loginStreak:0,lastLoginDate:null,lastDailyQuestReset:null,lastDailyQuestDate:null,dailyQuestCompletionDates:{},lastOnline:Date.now(),lastFishingTokenRegen:Date.now(),lastFishingTokenTime:Date.now(),startTime:Date.now(),totalPlaytime:0,totalCaptureAttempts:0,totalSuccessfulCaptures:0,totalCoinsEarned:0,totalFished:0,totalFlees:0,mysteryEggProgress:0,activeBoosts:[],inventory:{pokeball:50,greatball:20,ultraball:10,masterball:1,diveball:0,framby:0,pinap:0,ceriz:0,incensefleur:0,marin_lure:0,exp_charm:0,lucky_charm:0,charm_collection:0,legendary_radar:0,fire_stone:0,water_stone:0,thunder_stone:0,moon_stone:0,leaf_stone:0,fishingTokens:10,lootbox:0,rarebox:0,suprarebox:0,ultrabox:0,mystery_egg:0,eggs:[],processor_chips:0,blueprint_ocean:0,blueprint_cave:0,blueprint_volcano:0,blueprint_power_plant:0,blueprint_graveyard:0},collectionProgress:{},unlockedBadges:new Set(),currentRegion:'Kanto',unlockedRegions:new Set(['Kanto']),regionProgress:{Kanto:{captured:0,shinies:0},Johto:{captured:0,shinies:0},Hoenn:{captured:0,shinies:0}},questsProgress:{daily:{},special:{},permanent:{}},claimedQuests:{daily:new Set(),special:new Set(),permanent:new Set()},questsCompletedToday:new Set(),tutorialSeen:false,introSeen:false,customization:{nameModalSeen:false,pwaModalSeen:false},pokedexMode:'grid',pokedexFilters:{status:'all',rarity:'all',type:'all',evolvable:'all'},typeCaptureCounts:{},totalShopPurchases:0,dailyQuestStreak:0,rareCaptureCount:0,pendingLevelUps:[],rogue:{runsCompleted:0,runsStarted:0,fullClearsCount:0,totalShinyTokens:0,pityCounter:0,totalShards:0,shardsByType:{common:0,rare:0,legendary:0},unlocks:{extraBall:false,extraFloor:false,shinyCharmPermanent:false,fastRecharge:false},ticketsAvailable:10,lastTicketReset:null,lastRunRewards:null},buddy:{activeBuddyId:null,buddies:{}},poker:{runs_completed:0,runs_started:0,highest_ante:0,badges_earned:[],league_unlocked:false,total_chips_earned:0,total_hands_played:0,best_single_hand_score:0,legendary_combos_hit:0,permanent_deck:[],unlocked_cards:[],owned_jokers:[],meta_upgrades:{extra_card_draw:0,starting_chips_bonus:0,buddy_xp_multiplier:1.0,shiny_chance_boost:0},current_run:null,shop:{current_offers:[],rerolls_available:2,reroll_cost:50}},incubation:{eggs:[],incubators:1},catchbot:{active:false,lastCatch:Date.now(),storage:[]},golden:new Set(),research:{unlocked:false,energy:0,totalEnergyProduced:0,clickMultiplier:1,lastSaveTime:Date.now(),automationLevel:0,upgrades:{mouse_driver:0,gpu_overclock:0,virus_scan:0},habitats:{'forest':{name:'Forêt',type:'Grass',level:0,unlocked:true,slots:1,assigned:[]},'ocean':{name:'Océan',type:'Water',level:0,unlocked:false,slots:1,assigned:[]},'cave':{name:'Grotte',type:'Rock',level:0,unlocked:false,slots:1,assigned:[]},'volcano':{name:'Volcan',type:'Fire',level:0,unlocked:false,slots:1,assigned:[]},'power_plant':{name:'Centrale',type:'Electric',level:0,unlocked:false,slots:1,assigned:[]},'graveyard':{name:'Cimetière',type:'Ghost',level:0,unlocked:false,slots:1,assigned:[]}}},narrative:{queue:[],history:[],currentSpeaker:'porygon'},tcg:{unlocked:false,cards:{},boostersOpened:0},system:{currentPhase:'BOOT_SEQUENCE',integrity:0,glitchLevel:1.0,porygonMood:'PANIC',narrativeFlags:[]},modules:{fishing:{id:'fishing',condition:'level_2',unlocked:false,dialogue:'unlock_fishing_module'},research:{id:'research',condition:'level_5',unlocked:false,dialogue:'unlock_research_core'},poker:{id:'poker',condition:'level_12',unlocked:false,dialogue:'unlock_decryption'},rogue:{id:'rogue',condition:'level_20_and_johto',unlocked:false,dialogue:'unlock_deepnet'},blindbox:{id:'blindbox',condition:'level_8',unlocked:false,dialogue:'unlock_blindbox'},tcg:{id:'tcg',condition:'level_25',unlocked:false,dialogue:'unlock_archives'}}};
+let gameState = {coins:3000,level:1,xp:0,xpToNext:250,captured:new Set(),shinies:new Set(),evolved:new Set(),capturedCount:{},totalCaught:0,streak:0,bestStreak:0,blindBoxUsed:0,blindBoxSlots:5,blindBoxBonus:0,blindBoxResetTime:null,totalBlindBoxOpened:0,blindBoxPity:0,blindBoxHistory:[],captureHistory:[],fishingHistory:[],lastReset:Date.now(),lastLogin:Date.now(),loginStreak:0,lastLoginDate:null,lastDailyQuestReset:null,lastDailyQuestDate:null,dailyQuestCompletionDates:{},lastOnline:Date.now(),lastFishingTokenRegen:Date.now(),lastFishingTokenTime:Date.now(),startTime:Date.now(),totalPlaytime:0,totalCaptureAttempts:0,totalSuccessfulCaptures:0,totalCoinsEarned:0,totalFished:0,totalFlees:0,mysteryEggProgress:0,activeBoosts:[],inventory:{pokeball:50,greatball:20,ultraball:10,masterball:1,diveball:0,framby:0,pinap:0,ceriz:0,incensefleur:0,marin_lure:0,exp_charm:0,lucky_charm:0,charm_collection:0,legendary_radar:0,fire_stone:0,water_stone:0,thunder_stone:0,moon_stone:0,leaf_stone:0,fishingTokens:10,lootbox:0,rarebox:0,suprarebox:0,ultrabox:0,mystery_egg:0,eggs:[],processor_chips:0,blueprint_ocean:0,blueprint_cave:0,blueprint_volcano:0,blueprint_power_plant:0,blueprint_graveyard:0},collectionProgress:{},unlockedBadges:new Set(),currentRegion:'Kanto',unlockedRegions:new Set(['Kanto']),regionProgress:{Kanto:{captured:0,shinies:0},Johto:{captured:0,shinies:0},Hoenn:{captured:0,shinies:0}},questsProgress:{daily:{},special:{},permanent:{}},claimedQuests:{daily:new Set(),special:new Set(),permanent:new Set()},questsCompletedToday:new Set(),tutorialSeen:false,introSeen:false,customization:{nameModalSeen:false,pwaModalSeen:false},pokedexMode:'grid',pokedexFilters:{status:'all',rarity:'all',type:'all',evolvable:'all'},typeCaptureCounts:{},totalShopPurchases:0,dailyQuestStreak:0,rareCaptureCount:0,pendingLevelUps:[],rogue:{runsCompleted:0,runsStarted:0,fullClearsCount:0,totalShinyTokens:0,pityCounter:0,totalShards:0,shardsByType:{common:0,rare:0,legendary:0},unlocks:{extraBall:false,extraFloor:false,shinyCharmPermanent:false,fastRecharge:false},ticketsAvailable:10,lastTicketReset:null,lastRunRewards:null},buddy:{activeBuddyId:null,buddies:{}},poker:{runs_completed:0,runs_started:0,highest_ante:0,badges_earned:[],league_unlocked:false,total_chips_earned:0,total_hands_played:0,best_single_hand_score:0,legendary_combos_hit:0,permanent_deck:[],unlocked_cards:[],owned_jokers:[],meta_upgrades:{extra_card_draw:0,starting_chips_bonus:0,buddy_xp_multiplier:1.0,shiny_chance_boost:0},current_run:null,shop:{current_offers:[],rerolls_available:2,reroll_cost:50}},incubation:{eggs:[],incubators:1},catchbot:{active:false,lastCatch:Date.now(),storage:[]},golden:new Set(),research:{unlocked:false,energy:0,totalEnergyProduced:0,clickMultiplier:1,lastSaveTime:Date.now(),automationLevel:0,upgrades:{mouse_driver:0,gpu_overclock:0,virus_scan:0},habitats:{'forest':{name:'Forêt',type:'Grass',level:0,unlocked:true,slots:1,assigned:[]},'ocean':{name:'Océan',type:'Water',level:0,unlocked:false,slots:1,assigned:[]},'cave':{name:'Grotte',type:'Rock',level:0,unlocked:false,slots:1,assigned:[]},'volcano':{name:'Volcan',type:'Fire',level:0,unlocked:false,slots:1,assigned:[]},'power_plant':{name:'Centrale',type:'Electric',level:0,unlocked:false,slots:1,assigned:[]},'graveyard':{name:'Cimetière',type:'Ghost',level:0,unlocked:false,slots:1,assigned:[]}}},narrative:{queue:[],history:[],currentSpeaker:'porygon'},tcg:{unlocked:false,cards:{},boostersOpened:0},system:{currentPhase:'BOOT_SEQUENCE',integrity:0,glitchLevel:1.0,porygonMood:'PANIC',narrativeFlags:[]},modules:{fishing:{id:'fishing',condition:'level_2',unlocked:false,dialogue:'unlock_fishing_module'},research:{id:'research',condition:'level_5',unlocked:false,dialogue:'unlock_research_core'},poker:{id:'poker',condition:'level_12',unlocked:false,dialogue:'unlock_decryption'},rogue:{id:'rogue',condition:'level_20_and_johto',unlocked:false,dialogue:'unlock_deepnet'},blindbox:{id:'blindbox',condition:'level_8',unlocked:false,dialogue:'unlock_blindbox'},tcg:{id:'tcg',condition:'level_25',unlocked:false,dialogue:'unlock_archives'},bossBattle:{id:'bossBattle',condition:'level_8',unlocked:false,dialogue:'unlock_data_guardians'}},bossBattle:{firewallTickets:0,lastTicketReset:null,battlesCompleted:0,battlesWon:0,currentBattle:null},loreFiles:[],passiveBonuses:{}};
 window.gameState = gameState;
 
 let currentPokemon=null,currentFishingPokemon=null,captureCooldown=null,streakTooltipTimeout=null,usingFramby=false,usingPinap=false,usingCeriz=false;
@@ -7304,6 +8039,18 @@ function calculateCaptureRate(ballType,rarity,useBerry=false){
     
     if(typeof getBuddyHeldItemEffect==='function'&&getBuddyHeldItemEffect('capture_berry_boost')){
         rate=Math.min(rate*1.1,1.0);
+    }
+    
+    // Appliquer les bonus passifs des Lore Files
+    if (gameState.passiveBonuses) {
+        Object.values(gameState.passiveBonuses).forEach(bonusData => {
+            if (bonusData && bonusData.bonus) {
+                const bonus = bonusData.bonus;
+                if (bonus.type === 'capture_rate' && bonus.value) {
+                    rate = Math.min(rate + bonus.value, 1.0);
+                }
+            }
+        });
     }
     
     return rate;
@@ -7842,6 +8589,18 @@ function gainXP(rarity, isDuplicate = false) {
     // Streak Boost
     if (gameState.streak >= 10) xpGain = Math.floor(xpGain * 1.2);
     else if (gameState.streak >= 5) xpGain = Math.floor(xpGain * 1.1);
+
+    // Bonus passifs des Lore Files
+    if (gameState.passiveBonuses) {
+        Object.values(gameState.passiveBonuses).forEach(bonusData => {
+            if (bonusData && bonusData.bonus) {
+                const bonus = bonusData.bonus;
+                if (bonus.type === 'xp_boost' && bonus.value) {
+                    xpGain = Math.floor(xpGain * (1 + bonus.value));
+                }
+            }
+        });
+    }
 
     if (isDuplicate) xpGain *= 2;
 
@@ -9520,7 +10279,7 @@ function renderSpecialQuests(){
 
         const card=document.createElement('div');
         card.style.cssText=`background: ${isClaimed?'rgba(16, 185, 129, 0.15)':'var(--dark-elevated)'}; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid ${isClaimed?'#10b981':isCompleted?'#3b82f6':'#666'}; opacity: ${isClaimed?'0.5':'1'}; filter: ${isClaimed?'grayscale(50%)':'none'};`;
-        card.innerHTML=`<div style="display: flex; gap: 15px; align-items: flex-start;"><div style="font-size: 2em;">${quest.icon}</div><div style="flex: 1;"><div style="font-weight: bold; color: white; margin-bottom: 5px;">${isClaimed?'✔ ':isCompleted?'🎉 ':''}${quest.name}</div><div style="font-size: 0.9em; color: var(--text-secondary); margin-bottom: 10px;">${quest.desc}</div><div style="background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; height: 8px;"><div style="height: 100%; background: #4ade80; width: ${Math.min((progress/quest.target)*100,100)}%;"></div></div><div style="font-size: 0.85em; color: #bbb; margin-top: 5px;">${progress} / ${quest.target}</div></div><div style="text-align: right;">${isClaimed?`<div style="color: #4ade80; font-weight: bold;">✔ Réclamée</div>`:isCompleted?`<button class="claim-quest-btn btn btn--primary" data-quest-type="special" data-quest-id="${quest.id}" style="padding: 8px 16px;">Réclamer</button>`:`<div style="color: #999;"></div>`}<div style="font-size: 0.9em; color: #FFD700; margin-top: 10px;">${rewardText}</div></div></div>`;
+        card.innerHTML=`<div style="display: flex; gap: 15px; align-items: flex-start;"><div style="font-size: 2em; display: flex; align-items: center;">${quest.icon ? getItemIconDisplay(quest.icon, '2em') : getItemIconDisplay('pokeball', '2em')}</div><div style="flex: 1;"><div style="font-weight: bold; color: white; margin-bottom: 5px;">${isClaimed?'✔ ':isCompleted?'🎉 ':''}${quest.name}</div><div style="font-size: 0.9em; color: var(--text-secondary); margin-bottom: 10px;">${quest.desc}</div><div style="background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; height: 8px;"><div style="height: 100%; background: #4ade80; width: ${Math.min((progress/quest.target)*100,100)}%;"></div></div><div style="font-size: 0.85em; color: #bbb; margin-top: 5px;">${progress} / ${quest.target}</div></div><div style="text-align: right;">${isClaimed?`<div style="color: #4ade80; font-weight: bold;">✔ Réclamée</div>`:isCompleted?`<button class="claim-quest-btn btn btn--primary" data-quest-type="special" data-quest-id="${quest.id}" style="padding: 8px 16px;">Réclamer</button>`:`<div style="color: #999;"></div>`}<div style="font-size: 0.9em; color: #FFD700; margin-top: 10px;">${rewardText}</div></div></div>`;
         container.appendChild(card);
     }
     container.querySelectorAll('.claim-quest-btn').forEach(btn=>{
@@ -9561,7 +10320,7 @@ function renderPermanentQuests(){
 
         const card=document.createElement('div');
         card.style.cssText=`background: ${isClaimed?'rgba(16, 185, 129, 0.15)':'var(--dark-elevated)'}; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid ${isClaimed?'#10b981':isCompleted?'#3b82f6':'#666'}; opacity: ${isClaimed?'0.5':'1'}; filter: ${isClaimed?'grayscale(50%)':'none'};`;
-        card.innerHTML=`<div style="display: flex; gap: 15px; align-items: flex-start;"><div style="font-size: 2em;">${quest.icon}</div><div style="flex: 1;"><div style="font-weight: bold; color: white; margin-bottom: 5px;">${isClaimed?'✔ ':isCompleted?'🎉 ':''}${quest.name}</div><div style="font-size: 0.9em; color: var(--text-secondary); margin-bottom: 10px;">${quest.desc}</div><div style="background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; height: 8px;"><div style="height: 100%; background: #4ade80; width: ${Math.min((progress/quest.target)*100,100)}%;"></div></div><div style="font-size: 0.85em; color: #bbb; margin-top: 5px;">${progress} / ${quest.target}</div></div><div style="text-align: right;">${isClaimed?`<div style="color: #4ade80; font-weight: bold;">✔ Réclamée</div>`:isCompleted?`<button class="claim-quest-btn btn btn--primary" data-quest-type="permanent" data-quest-id="${quest.id}" style="padding: 8px 16px;">Réclamer</button>`:`<div style="color: #999;"></div>`}<div style="font-size: 0.9em; color: #FFD700; margin-top: 10px;">${rewardText}</div></div></div>`;
+        card.innerHTML=`<div style="display: flex; gap: 15px; align-items: flex-start;"><div style="font-size: 2em; display: flex; align-items: center;">${quest.icon ? getItemIconDisplay(quest.icon, '2em') : getItemIconDisplay('pokeball', '2em')}</div><div style="flex: 1;"><div style="font-weight: bold; color: white; margin-bottom: 5px;">${isClaimed?'✔ ':isCompleted?'🎉 ':''}${quest.name}</div><div style="font-size: 0.9em; color: var(--text-secondary); margin-bottom: 10px;">${quest.desc}</div><div style="background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; height: 8px;"><div style="height: 100%; background: #4ade80; width: ${Math.min((progress/quest.target)*100,100)}%;"></div></div><div style="font-size: 0.85em; color: #bbb; margin-top: 5px;">${progress} / ${quest.target}</div></div><div style="text-align: right;">${isClaimed?`<div style="color: #4ade80; font-weight: bold;">✔ Réclamée</div>`:isCompleted?`<button class="claim-quest-btn btn btn--primary" data-quest-type="permanent" data-quest-id="${quest.id}" style="padding: 8px 16px;">Réclamer</button>`:`<div style="color: #999;"></div>`}<div style="font-size: 0.9em; color: #FFD700; margin-top: 10px;">${rewardText}</div></div></div>`;
         container.appendChild(card);
     }
     container.querySelectorAll('.claim-quest-btn').forEach(btn=>{
@@ -9916,7 +10675,70 @@ function revealBlindBoxPokemon(pokemon){addToCollection(pokemon.id,pokemon.isShi
 
 function renderBlindBoxHistory(){const container=document.getElementById('blindbox-history');if(!container)return;const rarityColors={common:'#9ca3af',uncommon:'#3b82f6',rare:'#8b5cf6',super_rare:'#ec4899',legendary:'#f59e0b'};container.innerHTML=gameState.blindBoxHistory.slice(0,5).map(entry=>`<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 5px;"><span style="color: ${rarityColors[entry.rarity]}; font-weight: bold;">${entry.isShiny?'✨ ':''}${entry.pokemon}</span><div style="font-size: 0.9em; color: #4ade80;">NOUVEAU!</div></div>`).join('')||'<p style="text-align: center; color: #666;">Aucune Blind Box ouverte</p>';}
 
-window.renderShop=function(){const pokeballsContainer=document.getElementById('shop-pokeballs-items');const berriesContainer=document.getElementById('shop-berries-items');const itemsContainer=document.getElementById('shop-items-items');const lootboxesContainer=document.getElementById('shop-lootboxes-items');if(!pokeballsContainer)return;const shopItems={pokeballs:[{id:'pokeball',qty:10,price:500,icon:'⚾',name:'Poké Ball x10',desc:'Ball de base (50%)'},{id:'greatball',qty:5,price:1000,icon:'🔵',name:'Super Ball x5',desc:'Ball améliorée (70%)'},{id:'ultraball',qty:5,price:2400,icon:'⚫',name:'Hyper Ball x5',desc:'Ball puissante (90%)'},{id:'masterball',qty:1,price:10000,icon:'💜',name:'Master Ball',desc:'100% garanti'},{id:'diveball',qty:5,price:500,icon:'💧',name:'Scuba Ball x5',desc:'Bonus eau (×1.5)'}],berries:[{id:'framby',qty:5,price:1000,icon:'🍓',name:'Baie Framby x5',desc:'+50% capture'},{id:'pinap',qty:5,price:600,icon:'🍍',name:'Baie Pinap x5',desc:'×2 coins si capture'},{id:'ceriz',qty:3,price:2000,icon:'🍒',name:'Baie Ceriz x3',desc:'+100% capture Shiny'}],items:[{id:'incensefleur',qty:1,price:2000,icon:'🌀',name:'Encens Mystique',desc:'+20% rares (10min)'},{id:'marin_lure',qty:1,price:1200,icon:'🪸',name:'Appât Marin',desc:'×2 captures eau (10min)'},{id:'exp_charm',qty:1,price:1500,icon:'📘',name:'Amulette Exp',desc:'+25% XP (15min)'},{id:'lucky_charm',qty:1,price:3500,icon:'🍀',name:'Talisman Chanceux',desc:'+0.5% shiny (30min)'},{id:'charm_collection',qty:1,price:4000,icon:'💎',name:'Charm Collection',desc:'+10% nouveau Pokémon (20mn)'},{id:'fire_stone',qty:1,price:2500,icon:'🔥',name:'Pierre Feu',desc:'Évolue en feu'},{id:'water_stone',qty:1,price:2500,icon:'💧',name:'Pierre Eau',desc:'Évolue en eau'},{id:'thunder_stone',qty:1,price:2500,icon:'⚡',name:'Pierre Foudre',desc:'Évolue électrik'},{id:'moon_stone',qty:1,price:2500,icon:'🌙',name:'Pierre Lune',desc:'Évolue sous lune'},{id:'leaf_stone',qty:1,price:2500,icon:'🍃',name:'Pierre Plante',desc:'Évolue plante'}],lootboxes:[{id:'lootbox',qty:1,price:800,icon:'📦',name:'Lootbox',desc:'2-4 items (balls, baies)'},{id:'rarebox',qty:1,price:3000,icon:'🎁',name:'Rare Box',desc:'3-5 items dont 1 rare'},{id:'suprarebox',qty:1,price:8000,icon:'💎',name:'Super Rare Box',desc:'4-6 items dont 2 rares'},{id:'ultrabox',qty:1,price:20000,icon:'🧰',name:'Masterbox',desc:'Le top du top. Jackpot Masterball possible !'}]};const renderSection=(container,items)=>{container.innerHTML=items.map(item=>{if(item.id==='mystery_egg')return'';const current=gameState.inventory[item.id]||0;return `<div class="item-card" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;"><div style="flex: 1; display: flex; flex-direction: column; align-items: flex-start;"><div style="font-size: 2em; margin-bottom: 8px; display: flex; align-items: center; justify-content: flex-start; width: 100%;">${getItemIconDisplay(item.id, '32px')}</div><div style="font-weight: bold; color: white; margin-bottom: 4px; width: 100%;">${item.name}</div><div style="font-size: 0.9em; color: var(--text-secondary); width: 100%;">${item.desc}</div></div><button onclick="buyItem('${item.id}',${item.price},${item.qty})" ${gameState.coins<item.price?'disabled':''} class="btn btn--primary" style="min-width: 100px; padding: 12px 16px; align-self: center; flex-shrink: 0;">${item.price} 💰</button></div>`;}).join('');};renderSection(pokeballsContainer,shopItems.pokeballs);renderSection(berriesContainer,shopItems.berries);renderSection(itemsContainer,shopItems.items);renderSection(lootboxesContainer,shopItems.lootboxes);};
+window.renderShop=function(){
+    const pokeballsContainer=document.getElementById('shop-pokeballs-items');
+    const berriesContainer=document.getElementById('shop-berries-items');
+    const itemsContainer=document.getElementById('shop-items-items');
+    const lootboxesContainer=document.getElementById('shop-lootboxes-items');
+    if(!pokeballsContainer)return;
+    
+    // Utiliser ALL_ITEMS pour les données, getItemIconDisplay() utilisera automatiquement les API
+    const shopItems={
+        pokeballs:[
+            {id:'pokeball',qty:10,price:500,name:'Poké Ball x10',desc:'Ball de base (50%)'},
+            {id:'greatball',qty:5,price:1000,name:'Super Ball x5',desc:'Ball améliorée (70%)'},
+            {id:'ultraball',qty:5,price:2400,name:'Hyper Ball x5',desc:'Ball puissante (90%)'},
+            {id:'masterball',qty:1,price:10000,name:'Master Ball',desc:'100% garanti'},
+            {id:'diveball',qty:5,price:500,name:'Scuba Ball x5',desc:'Bonus eau (×1.5)'}
+        ],
+        berries:[
+            {id:'framby',qty:5,price:1000,name:'Baie Framby x5',desc:'+50% capture'},
+            {id:'pinap',qty:5,price:600,name:'Baie Pinap x5',desc:'×2 coins si capture'},
+            {id:'ceriz',qty:3,price:2000,name:'Baie Ceriz x3',desc:'+100% capture Shiny'}
+        ],
+        items:[
+            {id:'incensefleur',qty:1,price:2000,name:'Encens Mystique',desc:'+20% rares (10min)'},
+            {id:'marin_lure',qty:1,price:1200,name:'Appât Marin',desc:'×2 captures eau (10min)'},
+            {id:'exp_charm',qty:1,price:1500,name:'Amulette Exp',desc:'+25% XP (15min)'},
+            {id:'lucky_charm',qty:1,price:3500,name:'Talisman Chanceux',desc:'+0.5% shiny (30min)'},
+            {id:'charm_collection',qty:1,price:4000,name:'Charm Collection',desc:'+10% nouveau Pokémon (20mn)'},
+            {id:'fire_stone',qty:1,price:2500,name:'Pierre Feu',desc:'Évolue en feu'},
+            {id:'water_stone',qty:1,price:2500,name:'Pierre Eau',desc:'Évolue en eau'},
+            {id:'thunder_stone',qty:1,price:2500,name:'Pierre Foudre',desc:'Évolue électrik'},
+            {id:'moon_stone',qty:1,price:2500,name:'Pierre Lune',desc:'Évolue sous lune'},
+            {id:'leaf_stone',qty:1,price:2500,name:'Pierre Plante',desc:'Évolue plante'}
+        ],
+        lootboxes:[
+            {id:'lootbox',qty:1,price:800,name:'Lootbox',desc:'2-4 items (balls, baies)'},
+            {id:'rarebox',qty:1,price:3000,name:'Rare Box',desc:'3-5 items dont 1 rare'},
+            {id:'suprarebox',qty:1,price:8000,name:'Super Rare Box',desc:'4-6 items dont 2 rares'},
+            {id:'ultrabox',qty:1,price:20000,name:'Masterbox',desc:'Le top du top. Jackpot Masterball possible !'}
+        ]
+    };
+    
+    const renderSection=(container,items)=>{
+        container.innerHTML=items.map(item=>{
+            if(item.id==='mystery_egg')return'';
+            const current=gameState.inventory[item.id]||0;
+            // getItemIconDisplay() utilisera automatiquement ITEM_API_MAP pour les images API
+            return `<div class="item-card" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: flex-start;">
+                    <div style="font-size: 2em; margin-bottom: 8px; display: flex; align-items: center; justify-content: flex-start; width: 100%;">
+                        ${getItemIconDisplay(item.id, '32px')}
+                    </div>
+                    <div style="font-weight: bold; color: white; margin-bottom: 4px; width: 100%;">${item.name}</div>
+                    <div style="font-size: 0.9em; color: var(--text-secondary); width: 100%;">${item.desc}</div>
+                </div>
+                    <button onclick="buyItem('${item.id}',${item.price},${item.qty})" ${gameState.coins<item.price?'disabled':''} class="btn btn--primary" style="min-width: 100px; padding: 12px 16px; align-self: center; flex-shrink: 0;">${item.price} ${getItemIconDisplay('coins', '1em')}</button>
+            </div>`;
+        }).join('');
+    };
+    
+    renderSection(pokeballsContainer,shopItems.pokeballs);
+    renderSection(berriesContainer,shopItems.berries);
+    renderSection(itemsContainer,shopItems.items);
+    renderSection(lootboxesContainer,shopItems.lootboxes);
+};
 
 window.buyItem=function(itemId,price,qty=1){if(gameState.coins<price){showToast('Pas assez de coins!','error');return;}gameState.coins-=price;gameState.totalShopPurchases=(gameState.totalShopPurchases||0)+1;updateQuestProgress('shop_purchases',gameState.totalShopPurchases);const isBoostItem=['exp_charm','lucky_charm','incensefleur','marin_lure'].includes(itemId);if(isBoostItem){const duration={exp_charm:15*60*1000,lucky_charm:30*60*1000,incensefleur:10*60*1000,marin_lure:10*60*1000}[itemId];gameState.activeBoosts.push({type:itemId,endTime:Date.now()+duration});renderActiveBoosts();}else{gameState.inventory[itemId]=(gameState.inventory[itemId]||0)+qty;}showToast(`${ALL_ITEMS[itemId]?.name||itemId} ${isBoostItem?'activé':'acheté'}!`,'success');saveGame();updateUI();renderShop();};
 window.activateBoostItem=function(itemId){if(!gameState.inventory[itemId]||gameState.inventory[itemId]<=0){showToast('Vous n\'avez pas cet objet!','error');return;}if(itemId==='legendary_radar'){gameState.inventory[itemId]--;const legendaryPool=POKEMON_DATA.legendary;const currentRegion=getCurrentUnlockedRegion();let filteredPool=filterPokemonByRegion(legendaryPool,currentRegion);if(filteredPool.length===0)filteredPool=legendaryPool.slice(0,5);const id=filteredPool[Math.floor(Math.random()*filteredPool.length)];const hasLuckyBoost=gameState.activeBoosts.some(b=>b.type==='lucky_charm'&&b.endTime>Date.now());let shinyRate=(1/256)+(hasLuckyBoost?0.005:0)+(Math.floor(gameState.streak/5)*0.01);const buddyId=gameState.buddy?.activeBuddyId;const buddy=buddyId?gameState.buddy.buddies[buddyId]:null;if(buddy&&(buddy.level||1)>=7)shinyRate+=0.01;let isShiny=Math.random()<shinyRate;if(id===130)isShiny=false;currentPokemon={id,name:FRENCH_NAMES[id],rarity:'legendary',isShiny};usingFramby=false;usingPinap=false;usingCeriz=false;const encounterDiv=document.getElementById('encounter');if(encounterDiv){encounterDiv.innerHTML=`<div style="text-align: center;"><div style="font-size: 5em; animation: pokeball-shake 0.8s;" id="spawn-animation">⚾</div><p style="color: white; font-size: 1.2em; margin-top: 20px;">Un Pokémon légendaire apparaît...</p></div>`;setTimeout(()=>revealPokemon(),800);}if(document.getElementById('capture-page')&&!document.getElementById('capture-page').classList.contains('active')){switchPage('capture');setTimeout(()=>{const encounterDiv=document.getElementById('encounter');const captureSection=document.getElementById('capture-section');if(encounterDiv){encounterDiv.scrollIntoView({behavior:'smooth',block:'center'});}else if(captureSection){captureSection.scrollIntoView({behavior:'smooth',block:'start'});}else{window.scrollTo({top:0,behavior:'smooth'});}},100);}showToast('🧭 Radar Légendaire activé! Rencontre légendaire!','success');saveGame();updateUI();renderInventory();return;}const durationMap={exp_charm:15*60*1000,lucky_charm:30*60*1000,incensefleur:10*60*1000,marin_lure:10*60*1000,charm_collection:20*60*1000};const duration=durationMap[itemId]||10*60*1000;gameState.inventory[itemId]--;gameState.activeBoosts.push({type:itemId,endTime:Date.now()+duration});renderActiveBoosts();showToast(`${ALL_ITEMS[itemId]?.name||itemId} activé!`,'success');saveGame();updateUI();renderInventory();};
@@ -9945,8 +10767,8 @@ window.openLootbox = function(type) {
     animModal.innerHTML = `
         <div class="god-rays-bg"></div>
         <div style="text-align: center; position: relative; z-index: 2;">
-            <div id="lootbox-icon" style="font-size: 10em; animation: premiumLootboxShake 0.5s infinite ease-in-out; filter: drop-shadow(0 0 30px rgba(255,215,0,0.8));">
-                ${boxIcons[type]}
+            <div id="lootbox-icon" style="font-size: 10em; animation: premiumLootboxShake 0.5s infinite ease-in-out; filter: drop-shadow(0 0 30px rgba(255,215,0,0.8)); display: flex; align-items: center; justify-content: center;">
+                ${getBoxIcon(type)}
             </div>
             <div style="color: white; font-size: 1.8em; margin-top: 30px; animation: pulse 1s infinite;">
                 Ouverture en cours...
@@ -10162,6 +10984,15 @@ window.switchPage=function(pageName){
             return;
         }
     }
+    // Protection : Bloquer Data Guardians jusqu'au niveau 8
+    if(pageName==='bossBattle'||pageName==='boss-battle'){
+        if(!gameState.modules)gameState.modules={};
+        if(!gameState.modules.bossBattle)gameState.modules.bossBattle={id:'bossBattle',condition:'level_8',unlocked:gameState.level>=8};
+        if(!gameState.modules.bossBattle.unlocked&&gameState.level<8){
+            showToast('🔒 Les Data Guardians seront débloqués au niveau 8 !','error');
+            return;
+        }
+    }
     
     const pages=document.querySelectorAll('.page');
     pages.forEach(page=>page.classList.remove('active'));
@@ -10224,6 +11055,7 @@ window.switchPage=function(pageName){
         }
     }
     if(pageName==='leaderboard'){renderLeaderboard('pdg');}
+    if(pageName==='bossBattle'||pageName==='boss-battle'){if(typeof renderBossBattlePage==='function')renderBossBattlePage();}
 }
 function renderBuddyHomeDisplay() {
     const container = document.getElementById('buddy-home-display');
@@ -10280,7 +11112,28 @@ function renderBuddyHomeDisplay() {
 
 function filterPokedex(){const statusFilter=document.getElementById('pokedex-filter-status')?.value||'all';const rarityFilter=document.getElementById('pokedex-filter-rarity')?.value||'all';const typeFilter=document.getElementById('pokedex-filter-type')?.value||'all';const evolvableFilter=document.getElementById('pokedex-filter-evolvable')?.value||'all';gameState.pokedexFilters={status:statusFilter,rarity:rarityFilter,type:typeFilter,evolvable:evolvableFilter};if(gameState.pokedexMode==='grid')renderPokedexGrid();else if(gameState.pokedexMode==='list')renderPokedexList();}
 
-function renderCaptureHistory(){const container=document.getElementById('capture-history');if(!container)return;const rarityColors={common:'#9ca3af',uncommon:'#3b82f6',rare:'#8b5cf6',super_rare:'#ec4899',legendary:'#f59e0b'};container.innerHTML=gameState.captureHistory.slice(0,10).map(entry=>{const statusColor=entry.status==='captured'?'#4ade80':'#ef4444';const statusText=entry.status==='captured'?'Capturé':'Enfui';const shinyStyle=entry.isShiny?'style="background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: shinyText 2s linear infinite;"':'';return`<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 5px;"><span style="color: ${rarityColors[entry.rarity]}; font-weight: bold;" ${shinyStyle}>${entry.isShiny?'✨ ':''}${entry.name}${entry.isShiny?' ✨':''}</span><div style="font-size: 0.9em; color: ${statusColor}; font-weight: bold;">${statusText}</div></div>`;}).join('')||'<p style="text-align: center; color: #666;">Aucune rencontre récente</p>';}
+function renderCaptureHistory(){
+    const container=document.getElementById('capture-history');
+    if(!container)return;
+    
+    // Initialiser captureHistory si absent
+    if(!gameState.captureHistory)gameState.captureHistory=[];
+    
+    const rarityColors={common:'#9ca3af',uncommon:'#3b82f6',rare:'#8b5cf6',super_rare:'#ec4899',legendary:'#f59e0b'};
+    
+    if(gameState.captureHistory.length===0){
+        container.innerHTML='<p style="text-align: center; color: #666; padding: 20px;">Aucune rencontre récente</p>';
+        return;
+    }
+    
+    container.innerHTML=gameState.captureHistory.slice(0,10).map(entry=>{
+        if(!entry)return'';
+        const statusColor=entry.status==='captured'?'#4ade80':'#ef4444';
+        const statusText=entry.status==='captured'?'Capturé':'Enfui';
+        const shinyStyle=entry.isShiny?'style="background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: shinyText 2s linear infinite;"':'';
+        return`<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 5px;"><span style="color: ${rarityColors[entry.rarity]||'#9ca3af'}; font-weight: bold;" ${shinyStyle}>${entry.isShiny?'✨ ':''}${entry.name||'Inconnu'}${entry.isShiny?' ✨':''}</span><div style="font-size: 0.9em; color: ${statusColor}; font-weight: bold;">${statusText}</div></div>`;
+    }).join('')||'<p style="text-align: center; color: #666; padding: 20px;">Aucune rencontre récente</p>';
+}
 function renderFishingHistory(){const container=document.getElementById('fishing-history');if(!container)return;const rarityColors={common:'#9ca3af',uncommon:'#3b82f6',rare:'#8b5cf6',super_rare:'#ec4899',legendary:'#f59e0b'};container.innerHTML=(gameState.fishingHistory||[]).slice(0,10).map(entry=>{const statusColor=entry.status==='captured'?'#4ade80':'#ef4444';const statusText=entry.status==='captured'?'Capturé':'Enfui';const shinyStyle=entry.isShiny?'style="background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: shinyText 2s linear infinite;"':'';return`<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 5px;"><span style="color: ${rarityColors[entry.rarity]}; font-weight: bold;" ${shinyStyle}>${entry.isShiny?'✨ ':''}${entry.name}${entry.isShiny?' ✨':''}</span><div style="font-size: 0.9em; color: ${statusColor}; font-weight: bold;">${statusText}</div></div>`;}).join('')||'<p style="text-align: center; color: #666;">Aucune pêche récente</p>';}
 // Fonction pour créer la texture de la Pokéball
 function createCorrectedTexture() {
@@ -10632,6 +11485,27 @@ function startInitialSequence() {
     
     // Démarrer la séquence
     executeNextStep();
+    
+    // Message initial de Porygon pour indiquer l'objectif de 5 captures
+    if (gameState.introSeen && gameState.customization?.nameModalSeen && 
+        gameState.totalCaught < 5 && 
+        !gameState.system?.narrativeFlags?.includes('initial_5_captures_message_shown')) {
+        if (!gameState.system) gameState.system = {};
+        if (!gameState.system.narrativeFlags) gameState.system.narrativeFlags = [];
+        gameState.system.narrativeFlags.push('initial_5_captures_message_shown');
+        
+        setTimeout(() => {
+            if (typeof showPorygonMessage === 'function') {
+                showPorygonMessage([
+                    'ARCHIVISTE. Le système est instable.',
+                    'Pour stabiliser la connexion, tu dois capturer 5 Pokémon.',
+                    'Regarde la barre de stabilité en haut à droite.',
+                    'Chaque capture rapproche le système de la stabilité.',
+                    'Bonne chance.'
+                ]);
+            }
+        }, 2000);
+    }
 }
 
 function executeNextStep() {
@@ -10836,7 +11710,12 @@ window.submitTrainerName = function() {
     if (typeof completeStep === 'function') completeStep('name');
 };
 
-function showToast(msg,type='info'){const toast=document.createElement('div');toast.style.cssText=`position: fixed; top: 80px; right: 20px; background: ${type==='success'?'linear-gradient(135deg, #4CAF50, #8BC34A)':type==='error'?'linear-gradient(135deg, #ff6b6b, #ff5252)':'linear-gradient(135deg, #667eea, #764ba2)'}; color: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; animation: slideInRight 0.3s ease-out; font-weight: 600; max-width: 350px; white-space: pre-wrap;`;toast.textContent=msg;document.body.appendChild(toast);const existingToasts=document.querySelectorAll('[data-toast="true"]');const toastCount=existingToasts.length;if(toastCount>0){const topOffset=80+(toastCount*80);toast.style.top=`${topOffset}px`;}toast.setAttribute('data-toast','true');setTimeout(()=>{toast.style.animation='slideOutRight 0.3s ease-out';setTimeout(()=>{toast.remove();const remainingToasts=document.querySelectorAll('[data-toast="true"]');remainingToasts.forEach((t,idx)=>{t.style.top=`${80+(idx*80)}px`;});},300);},3000);}
+function showToast(msg,type='info'){
+    const toast=document.createElement('div');
+    toast.style.cssText=`position: fixed; top: 80px; right: 20px; background: ${type==='success'?'linear-gradient(135deg, #4CAF50, #8BC34A)':type==='error'?'linear-gradient(135deg, #ff6b6b, #ff5252)':'linear-gradient(135deg, #667eea, #764ba2)'}; color: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; animation: slideInRight 0.3s ease-out; font-weight: 600; max-width: 350px; white-space: pre-wrap;`;
+    // Convertir les émojis en images API
+    toast.innerHTML=convertEmojisToIcons(msg, '1em');
+    document.body.appendChild(toast);const existingToasts=document.querySelectorAll('[data-toast="true"]');const toastCount=existingToasts.length;if(toastCount>0){const topOffset=80+(toastCount*80);toast.style.top=`${topOffset}px`;}toast.setAttribute('data-toast','true');setTimeout(()=>{toast.style.animation='slideOutRight 0.3s ease-out';setTimeout(()=>{toast.remove();const remainingToasts=document.querySelectorAll('[data-toast="true"]');remainingToasts.forEach((t,idx)=>{t.style.top=`${80+(idx*80)}px`;});},300);},3000);}
 
 function showCelebration(title,message,type='default',pokemonId=null){const colors={shiny:'linear-gradient(135deg, #FFD700, #FFA500)',legendary:'linear-gradient(135deg, #9333ea, #ec4899)',levelup:'linear-gradient(135deg, #3b82f6, #8b5cf6)',achievement:'linear-gradient(135deg, #10b981, #3b82f6)',default:'linear-gradient(135deg, #667eea, #764ba2)'};const modal=document.createElement('div');modal.style.cssText=`position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 99999; animation: fadeIn 0.3s ease;`;const imageHTML=pokemonId?`<img src="${getAnimatedSpriteUrl(pokemonId, false)}" style="width: 200px; height: 200px; image-rendering: pixelated; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(255,255,255,0.5)); object-fit: contain; object-position: center; display: block; margin: 0 auto 20px;">`:'';const closeModal=()=>{modal.style.animation='slideOutRight 0.4s ease-out';setTimeout(()=>{if(modal.parentNode)modal.remove();},400);};modal.innerHTML=`<div style="background: ${colors[type]}; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px; animation: bounceIn 0.5s ease; box-shadow: 0 20px 60px rgba(0,0,0,0.5);"><div style="font-size: 3em; margin-bottom: 20px;">${type==='shiny'?'✨':type==='legendary'?'👑':type==='levelup'?'🎉':type==='achievement'?'🏆':'🌟'}</div>${imageHTML}<div style="font-size: 1.8em; font-weight: bold; color: white; margin-bottom: 15px;">${title}</div><div style="font-size: 1.1em; color: rgba(255,255,255,0.9); white-space: pre-wrap;">${message}</div><button onclick="window.closeCelebrationModal && window.closeCelebrationModal()" style="margin-top: 25px; padding: 12px 30px; background: rgba(255,255,255,0.2); border: 2px solid white; border-radius: 25px; color: white; font-weight: bold; cursor: pointer;">OK</button></div>`;document.body.appendChild(modal);window.closeCelebrationModal=closeModal;setTimeout(()=>{if(modal.parentNode){closeModal();delete window.closeCelebrationModal;}},5000);}
 window.resetGame=function(){if(!confirm('⚠️ ATTENTION ⚠️\n\nÊtes-vous absolument sûr de vouloir réinitialiser?\n\nToute votre progression sera définitivement perdue :\n- Pokédex complet\n- Coins et objets\n- Quêtes et succès\n- Niveau et XP\n\nCette action est IRRÉVERSIBLE !')){return;}if(!confirm('Dernière confirmation :\n\nTapez OK pour SUPPRIMER définitivement toutes vos données.')){return;}try{localStorage.removeItem('pokemonGameV62');localStorage.clear();setTimeout(()=>{window.location.reload();},100);}catch(e){console.error('Erreur lors de la réinitialisation:',e);alert('Erreur lors de la réinitialisation. Veuillez rafraîchir la page manuellement.');window.location.reload();}};
@@ -13926,6 +14805,47 @@ window.applySaveData = function(data) {
         if (data.poker) {
             if (!gameState.poker) gameState.poker = {};
             gameState.poker = { ...gameState.poker, ...data.poker };
+        }
+        if (data.bossBattle) {
+            if (!gameState.bossBattle) {
+                gameState.bossBattle = {
+                    firewallTickets: 0,
+                    battlesCompleted: 0,
+                    battlesWon: 0
+                };
+            }
+            gameState.bossBattle = { ...gameState.bossBattle, ...data.bossBattle };
+        }
+        // Initialiser bossBattle si absent
+        if (!gameState.bossBattle) {
+            gameState.bossBattle = {
+                firewallTickets: 0,
+                battlesCompleted: 0,
+                battlesWon: 0
+            };
+        }
+        
+        if (data.loreFiles) {
+            if (!gameState.loreFiles) gameState.loreFiles = [];
+            gameState.loreFiles = Array.isArray(data.loreFiles) ? data.loreFiles : [];
+        }
+        // Initialiser loreFiles si absent
+        if (!gameState.loreFiles) {
+            gameState.loreFiles = [];
+        }
+        
+        if (data.passiveBonuses) {
+            if (!gameState.passiveBonuses) gameState.passiveBonuses = {};
+            // Si c'est un array (ancien format), convertir en objet
+            if (Array.isArray(data.passiveBonuses)) {
+                gameState.passiveBonuses = {};
+            } else {
+                gameState.passiveBonuses = { ...gameState.passiveBonuses, ...data.passiveBonuses };
+            }
+        }
+        // Initialiser passiveBonuses si absent
+        if (!gameState.passiveBonuses) {
+            gameState.passiveBonuses = {};
         }
         if (data.incubation) {
             if (!gameState.incubation) gameState.incubation = {};
@@ -19033,16 +19953,18 @@ function renderResearchPage() {
             <div id="research-view-terminal" class="research-view" style="display: none;">
                 <h2 style="text-align:center; color: #a855f7; margin-bottom:15px;">💻 Terminal Genesis</h2>
                 
-                        <div class="research-tabs" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                            <button id="tab-terminal-main" class="research-tab active" onclick="switchTerminalTab('main')" style="flex: 1;">⚡ Upgrades</button>
-                            <button id="tab-terminal-production" class="research-tab" onclick="switchTerminalTab('production')" style="flex: 1;">🌱 Production</button>
-                            <button id="tab-terminal-tech" class="research-tab" onclick="switchTerminalTab('tech')" style="flex: 1;">🌳 Arbre</button>
-                            ${(gameState.research.ancientData || 0) > 0 ? `<button id="tab-terminal-prestige" class="research-tab" onclick="switchTerminalTab('prestige')" style="flex: 1; color: #FFD700;">🔮 Prestige</button>` : ''}
+                        <div class="research-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                            <button id="tab-terminal-main" class="research-tab active" onclick="switchTerminalTab('main')" style="flex: 1; min-width: 80px;">⚡ Upgrades</button>
+                            <button id="tab-terminal-production" class="research-tab" onclick="switchTerminalTab('production')" style="flex: 1; min-width: 80px;">🌱 Production</button>
+                            <button id="tab-terminal-tech" class="research-tab" onclick="switchTerminalTab('tech')" style="flex: 1; min-width: 80px;">🌳 Arbre</button>
+                            ${(gameState.loreFiles && gameState.loreFiles.length > 0) ? `<button id="tab-terminal-decrypt" class="research-tab" onclick="switchTerminalTab('decrypt')" style="flex: 1; min-width: 80px; color: #00ff9d;">🔓 Décryptage</button>` : ''}
+                            ${(gameState.research.ancientData || 0) > 0 ? `<button id="tab-terminal-prestige" class="research-tab" onclick="switchTerminalTab('prestige')" style="flex: 1; min-width: 80px; color: #FFD700;">🔮 Prestige</button>` : ''}
                 </div>
                         
                         <div id="terminal-content-main"><div id="terminal-shop"></div></div>
                         <div id="terminal-content-production" style="display:none;"><div id="berry-production-container"></div></div>
                         <div id="terminal-content-tech" style="display:none;"><div id="tech-tree-container"></div></div>
+                        <div id="terminal-content-decrypt" style="display:none;"><div id="decrypt-terminal-container"></div></div>
                         <div id="terminal-content-prestige" style="display:none;"><div id="prestige-shop"></div></div>
             </div>
 
@@ -19228,7 +20150,7 @@ window.switchResearchView = function(view) {
 
 // Fonction utilitaire pour les onglets du terminal
 window.switchTerminalTab = function(tab) {
-    ['main', 'production', 'tech', 'prestige'].forEach(t => {
+    ['main', 'production', 'tech', 'prestige', 'decrypt'].forEach(t => {
         const el = document.getElementById(`terminal-content-${t}`);
         const btn = document.getElementById(`tab-terminal-${t}`);
         if (el) el.style.display = 'none';
@@ -19237,6 +20159,10 @@ window.switchTerminalTab = function(tab) {
     
     const targetEl = document.getElementById(`terminal-content-${tab}`);
     const targetBtn = document.getElementById(`tab-terminal-${tab}`);
+    
+    if (tab === 'decrypt') {
+        renderDecryptTerminal();
+    }
     
     if (targetEl) {
         targetEl.style.display = 'block';
@@ -20052,6 +20978,43 @@ function renderTerminalShop() {
                     ${renderAutomationShop()}
                 </div>
                 
+                <!-- Section Tickets Firewall (Data Guardians) -->
+                ${gameState.level >= 8 ? `
+                <div style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid rgba(125, 95, 255, 0.3);">
+                    <h4 style="color: #ff0055; margin-bottom: 15px; text-align: center; font-size: 1.2em;">🛡️ Tickets Firewall</h4>
+                    <p style="color: rgba(255,255,255,0.6); text-align: center; margin-bottom: 15px; font-size: 0.9em;">
+                        Accès aux Data Guardians - Combat de Boss
+                    </p>
+                    <div style="text-align: center; margin-bottom: 15px; padding: 10px; background: rgba(255, 0, 85, 0.1); border-radius: 8px;">
+                        <div style="color: #ff0055; font-size: 1.1em; font-weight: bold;">
+                            🎫 Tickets : ${(gameState.bossBattle?.firewallTickets || 0)}
+                        </div>
+                    </div>
+                    <div style="background: rgba(30, 30, 50, 0.6); border: 2px solid ${(gameState.research.energy || 0) >= 5000 ? '#ff0055' : '#444'}; border-radius: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <span style="font-size: 2em;">🔑</span>
+                                <div>
+                                    <div style="color: white; font-weight: bold; font-size: 1.1em;">Firewall Key</div>
+                                    <div style="color: rgba(255,255,255,0.6); font-size: 0.9em;">Accès à un combat de Data Guardian</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="color: #20d5d2; font-size: 1.2em; font-weight: bold; margin-bottom: 5px;">
+                                5,000 EO
+                            </div>
+                            <button onclick="buyFirewallTicket()" 
+                                    class="btn btn--primary" 
+                                    ${(gameState.research.energy || 0) < 5000 ? 'disabled' : ''}
+                                    style="padding: 8px 16px; background: #ff0055; ${(gameState.research.energy || 0) < 5000 ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                                Acheter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+                
                 <h4 style="color: #a855f7; margin-bottom: 15px; text-align: center; font-size: 1.2em;">⚙️ Upgrades Système</h4>
                 ${(gameState.research?.automationLevel || 0) === 0 ? `
                     <div style="background: rgba(168, 85, 247, 0.2); border: 2px solid #a855f7; border-radius: 10px; padding: 12px; margin-bottom: 15px; text-align: center;">
@@ -20322,6 +21285,221 @@ function startAutoClicker() {
     }, 2000); // Toutes les 2 secondes
 }
 
+// Fonction pour acheter un Ticket Firewall
+window.buyFirewallTicket = function() {
+    const cost = 5000;
+    const currentEnergy = gameState.research?.energy || 0;
+    
+    if (currentEnergy < cost) {
+        showToast(`Pas assez d'Énergie Onirique! Nécessaire: ${cost.toLocaleString()} EO`, 'error');
+        return;
+    }
+    
+    // Vérifier le déblocage
+    if (gameState.level < 8) {
+        showToast('Les Data Guardians sont débloqués au niveau 8!', 'error');
+        return;
+    }
+    
+    // Débiter l'EO
+    gameState.research.energy -= cost;
+    
+    // Ajouter le ticket
+    if (!gameState.bossBattle) gameState.bossBattle = {};
+    gameState.bossBattle.firewallTickets = (gameState.bossBattle.firewallTickets || 0) + 1;
+    
+    saveGame();
+    updateResearchUI();
+    renderTerminalShop();
+    
+    showToast(`🎫 Ticket Firewall obtenu! (${gameState.bossBattle.firewallTickets} disponible${gameState.bossBattle.firewallTickets > 1 ? 's' : ''})`, 'success');
+};
+
+// Fonction pour afficher le Terminal de Décryptage
+window.renderDecryptTerminal = function() {
+    const container = document.getElementById('decrypt-terminal-container');
+    if (!container) return;
+    
+    const loreFiles = gameState.loreFiles || [];
+    
+    if (loreFiles.length === 0) {
+        container.innerHTML = `
+            <div style="background: rgba(20, 20, 35, 0.8); border: 2px solid #00ff9d; border-radius: 12px; padding: 40px; text-align: center;">
+                <h3 style="color: #00ff9d; margin-bottom: 15px;">🔓 Terminal de Décryptage</h3>
+                <p style="color: rgba(255,255,255,0.7); margin-bottom: 10px;">
+                    Aucun fichier corrompu en attente de décryptage.
+                </p>
+                <p style="color: rgba(255,255,255,0.5); font-size: 0.9em;">
+                    Obtenez des Lore Files en battant les Data Guardians!
+                </p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div style="background: rgba(20, 20, 35, 0.8); border: 2px solid #00ff9d; border-radius: 12px; padding: 20px;">
+            <h3 style="color: #00ff9d; margin-bottom: 20px; text-align: center; font-family: 'Share Tech Mono', monospace;">
+                🔓 TERMINAL DE DÉCRYPTAGE
+            </h3>
+            <p style="color: rgba(255,255,255,0.7); text-align: center; margin-bottom: 20px; font-family: 'Share Tech Mono', monospace; font-size: 0.9em;">
+                Décryptez les fichiers corrompus pour débloquer des bonus passifs
+            </p>
+            
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+    `;
+    
+    loreFiles.forEach(loreFileId => {
+        const loreFile = LORE_FILES_DATA[loreFileId] || LORE_FILES_DATA_BASE[loreFileId];
+        if (!loreFile) return;
+        
+        const decryptCost = loreFile.decryptCost || 1000;
+        const canAfford = (gameState.research?.energy || 0) >= decryptCost;
+        const isDecrypted = gameState.passiveBonuses?.[loreFileId];
+        
+        html += `
+            <div style="background: rgba(30, 30, 50, 0.6); border: 2px solid ${isDecrypted ? '#10b981' : (canAfford ? '#00ff9d' : '#444')}; 
+                        border-radius: 10px; padding: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+                    <div style="flex: 1;">
+                        <div style="color: ${isDecrypted ? '#10b981' : 'white'}; font-weight: bold; font-size: 1.1em; margin-bottom: 8px;">
+                            ${loreFile.displayName || loreFile.name}
+                            ${isDecrypted ? ' ✅' : ' 🔒'}
+                        </div>
+                        <div style="color: rgba(255,255,255,0.6); font-size: 0.9em; margin-bottom: 10px;">
+                            ${isDecrypted ? 'Décrypté' : 'Fichier corrompu - Nécessite décryptage'}
+                        </div>
+                        ${loreFile.passiveBonus ? `
+                            <div style="color: #00ff9d; font-size: 0.85em; margin-top: 5px;">
+                                Bonus: ${loreFile.passiveBonus.description || ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div style="text-align: right;">
+                        ${isDecrypted ? `
+                            <div style="color: #10b981; font-weight: bold;">DÉCRYPTÉ</div>
+                        ` : `
+                            <div style="color: #20d5d2; font-size: 1.1em; font-weight: bold; margin-bottom: 5px;">
+                                ${decryptCost.toLocaleString()} EO
+                            </div>
+                            <button onclick="decryptLoreFile('${loreFileId}')" 
+                                    class="btn btn--primary" 
+                                    ${!canAfford ? 'disabled' : ''}
+                                    style="padding: 8px 16px; background: #00ff9d; color: #000; font-weight: bold;
+                                           ${!canAfford ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                                Décrypter
+                            </button>
+                        `}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+};
+
+// Fonction pour décrypter un Lore File
+window.decryptLoreFile = function(loreFileId) {
+    const loreFile = LORE_FILES_DATA[loreFileId] || LORE_FILES_DATA_BASE[loreFileId];
+    if (!loreFile) {
+        showToast('Fichier introuvable!', 'error');
+        return;
+    }
+    
+    // Vérifier si déjà décrypté
+    if (gameState.passiveBonuses?.[loreFileId]) {
+        showToast('Ce fichier est déjà décrypté!', 'error');
+        return;
+    }
+    
+    const decryptCost = loreFile.decryptCost || 1000;
+    const currentEnergy = gameState.research?.energy || 0;
+    
+    if (currentEnergy < decryptCost) {
+        showToast(`Pas assez d'Énergie Onirique! Nécessaire: ${decryptCost.toLocaleString()} EO`, 'error');
+        return;
+    }
+    
+    // Débiter l'EO
+    gameState.research.energy -= decryptCost;
+    
+    // Initialiser passiveBonuses si nécessaire
+    if (!gameState.passiveBonuses) gameState.passiveBonuses = {};
+    
+    // Débloquer le bonus passif
+    gameState.passiveBonuses[loreFileId] = {
+        unlocked: true,
+        unlockedAt: Date.now(),
+        bonus: loreFile.passiveBonus
+    };
+    
+    saveGame();
+    updateResearchUI();
+    
+    // Afficher le contenu décrypté
+    showDecryptedLoreContent(loreFile);
+    
+    // Mettre à jour l'affichage
+    renderDecryptTerminal();
+};
+
+// Fonction pour afficher le contenu décrypté
+function showDecryptedLoreContent(loreFile) {
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.style.cssText = 'display: flex !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; overflow-y: auto; padding: 20px; font-family: "Share Tech Mono", monospace;';
+    
+    const content = Array.isArray(loreFile.content) ? loreFile.content : [loreFile.content];
+    
+    let html = `
+        <div style="background: rgba(10, 15, 30, 0.98); border: 2px solid #00ff9d; border-radius: 20px; padding: 30px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto;">
+            <h2 style="color: #00ff9d; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px;">
+                ${loreFile.displayName || loreFile.name}
+            </h2>
+            
+            <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(0,255,157,0.3); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                <div style="color: #00ff9d; font-size: 0.9em; margin-bottom: 15px; text-transform: uppercase;">
+                    >>> DÉCRYPTAGE RÉUSSI <<<
+                </div>
+                ${content.map(line => `
+                    <div style="color: rgba(255,255,255,0.9); margin-bottom: 10px; line-height: 1.6; font-size: 0.95em;">
+                        ${line}
+                    </div>
+                `).join('')}
+            </div>
+            
+            ${loreFile.passiveBonus ? `
+                <div style="background: rgba(0,255,157,0.1); border: 1px solid #00ff9d; border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                    <div style="color: #00ff9d; font-weight: bold; margin-bottom: 5px;">✨ BONUS PASSIF DÉBLOQUÉ</div>
+                    <div style="color: white; font-size: 0.9em;">
+                        ${loreFile.passiveBonus.description || ''}
+                    </div>
+                </div>
+            ` : ''}
+            
+            <button onclick="this.closest('.modal').remove()" 
+                    style="width: 100%; padding: 12px; background: #00ff9d; color: #000; 
+                           border: none; border-radius: 6px; cursor: pointer; font-weight: bold;
+                           font-family: 'Share Tech Mono', monospace;">
+                FERMER
+            </button>
+        </div>
+    `;
+    
+    modal.innerHTML = html;
+    document.body.appendChild(modal);
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+}
+
 window.buyTerminalUpgrade = function(upgradeId) {
     if (!gameState.research.upgrades) {
         gameState.research.upgrades = {
@@ -20523,6 +21701,35 @@ document.addEventListener('DOMContentLoaded',()=>{
         saveGame();
     },30000);
     console.log('✨ V10.0 - POKÉMON COLLECTOR V10.0 CHARGÉ AVEC SUCCÈS! (Système Narratif + Centre de Recherche + Polish)');
+    
+    // Mettre à jour les icônes de ressources dans le header
+    const coinsIcon = document.getElementById('coins-icon');
+    const streakIcon = document.getElementById('streak-icon');
+    if (coinsIcon) {
+        coinsIcon.innerHTML = getItemIconDisplay('coins', '1.2em');
+    }
+    if (streakIcon) {
+        // Pour le streak, on peut utiliser un item de type feu ou un item spécial
+        streakIcon.innerHTML = getItemIconDisplay('type_fire', '1.2em');
+    }
+    
+    // Mettre à jour les icônes de stats
+    const pokedexIcon = document.getElementById('stat-icon-pokedex');
+    const shinyIcon = document.getElementById('stat-icon-shiny');
+    const streakStatIcon = document.getElementById('stat-icon-streak');
+    const blindboxIcon = document.getElementById('stat-icon-blindbox');
+    if (pokedexIcon) {
+        pokedexIcon.innerHTML = getItemIconDisplay('poke-ball', '2em');
+    }
+    if (shinyIcon) {
+        shinyIcon.innerHTML = getItemIconDisplay('shiny_token', '2em');
+    }
+    if (streakStatIcon) {
+        streakStatIcon.innerHTML = getItemIconDisplay('type_fire', '2em');
+    }
+    if (blindboxIcon) {
+        blindboxIcon.innerHTML = getItemIconDisplay('lootbox', '2em');
+    }
 });
 
 const style=document.createElement('style');style.textContent=`
@@ -20619,7 +21826,7 @@ window.renderInventory = function() {
         berries: { name: '🍓 Baies', items: ['framby', 'pinap', 'ceriz'] },
         boosts: { name: '✨ Boosts', items: ['incensefleur', 'marin_lure', 'exp_charm', 'lucky_charm', 'charm_collection', 'legendary_radar'] },
         stones: { name: '💎 Pierres d\'Évolution', items: ['fire_stone', 'water_stone', 'thunder_stone', 'moon_stone', 'leaf_stone'] },
-        lootboxes: { name: '📦 Lootboxes', items: ['lootbox', 'rarebox', 'suprarebox', 'ultrabox'] },
+        lootboxes: { name: `${getItemIconDisplay('lootbox', '1em')} Lootboxes`, items: ['lootbox', 'rarebox', 'suprarebox', 'ultrabox'] },
         treasures: { name: '💎 Trésors', items: ['pearl', 'big_pearl', 'stardust', 'star_piece', 'heart_scale', 'golden_magikarp'] }
     };
     

@@ -7,9 +7,32 @@ const { useState, useEffect, useMemo, useRef } = React;
 
 const getTrainerSprite = (name) => `https://play.pokemonshowdown.com/sprites/trainers/${name}.png`;
 
-const getIcon = (type) => ({ 'Fire': '🔥', 'Water': '💧', 'Grass': '🍃', 'Electric': '⚡', 'Rock': '🪨', 'Psychic': '🔮', 'Ghost': '👻', 'Poison': '☠️', 'Flying': '🌪️', 'Ice': '❄️' }[type] || '⚪');
+// Helper pour obtenir les icônes d'API PokéAPI
+const getItemIconUrl = (type) => {
+    const baseUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/";
+    const itemMap = {
+        'Fire': 'fire-gem', 'Water': 'water-gem', 'Grass': 'grass-gem', 'Electric': 'electric-gem',
+        'Rock': 'hard-stone', 'Psychic': 'psychic-gem', 'Ghost': 'ghost-gem', 'Poison': 'spell-tag',
+        'Flying': 'sharp-beak', 'Ice': 'never-melt-ice', 'Ground': 'soft-sand'
+    };
+    const apiName = itemMap[type] || 'poke-ball';
+    return `${baseUrl}${apiName}.png`;
+};
 
-const getBadgeIcon = (type) => ({ Rock: '🪨', Water: '💧', Electric: '⚡', Grass: '🍃', Poison: '☠️', Psychic: '🔮', Fire: '🔥', Ground: '🏜️' }[type] || '🏅');
+const getIcon = (type) => {
+    const iconUrl = getItemIconUrl(type);
+    return `<img src="${iconUrl}" style="width: 1em; height: 1em; image-rendering: pixelated; vertical-align: middle; display: inline-block;" alt="${type}">`;
+};
+
+const getBadgeIcon = (type) => {
+    const badgeMap = {
+        Rock: 'hard-stone', Water: 'mystic-water', Electric: 'magnet', Grass: 'miracle-seed',
+        Poison: 'spell-tag', Psychic: 'twisted-spoon', Fire: 'charcoal', Ground: 'soft-sand'
+    };
+    const baseUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/";
+    const apiName = badgeMap[type] || 'poke-ball';
+    return `<img src="${baseUrl}${apiName}.png" style="width: 1em; height: 1em; image-rendering: pixelated; vertical-align: middle; display: inline-block;" alt="Badge ${type}">`;
+};
 const getBadgeName = (type) => ({ Rock: 'Roche', Water: 'Eau', Electric: 'Électrik', Grass: 'Plante', Poison: 'Poison', Psychic: 'Psy', Fire: 'Feu', Ground: 'Sol' }[type] || type);
 
 const TYPE_COLORS = {
@@ -602,7 +625,6 @@ const Card = ({ card, selected, onClick, small, highlight, overlap, dimmed }) =>
     return (
         <div 
             onClick={() => onClick && onClick(card)}
-            style={bgStyle}
             className={`
                 ${small ? 'w-14 h-20 text-[8px]' : 'w-[75px] md:w-24 h-[105px] md:h-36 text-[9px] md:text-xs'} 
                 rounded-lg shadow-lg relative flex flex-col p-0.5 md:p-1

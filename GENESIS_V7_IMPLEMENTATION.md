@@ -169,3 +169,4 @@ Ce document récapitule l'implémentation de l'Architecture V7.0 "Genesis" selon
 
 
 
+
