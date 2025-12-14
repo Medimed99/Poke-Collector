@@ -468,8 +468,13 @@ function createBattleUnit(pokemonId, isShiny = false) {
 
 // Fonction pour afficher la page de sélection de Boss
 window.renderBossBattlePage = function() {
+    console.log('🔍 renderBossBattlePage() appelée');
     const container = document.getElementById('boss-battle-container');
-    if (!container) return;
+    if (!container) {
+        console.error('❌ Container boss-battle-container introuvable!');
+        return;
+    }
+    console.log('✅ Container trouvé:', container);
     
     // Vérifier le déblocage
     if (!gameState.modules.bossBattle || !gameState.modules.bossBattle.unlocked) {
@@ -491,11 +496,13 @@ window.renderBossBattlePage = function() {
     }
     
     // Afficher la liste des Boss disponibles
-    const availableBosses = Object.values(BOSS_DATA).filter(boss => {
+    console.log('🔍 BOSS_DATA:', typeof BOSS_DATA, BOSS_DATA ? Object.keys(BOSS_DATA).length : 'undefined');
+    const availableBosses = Object.values(BOSS_DATA || {}).filter(boss => {
         if (boss.minLevel && gameState.level < boss.minLevel) return false;
         if (boss.region && !gameState.unlockedRegions.has(boss.region)) return false;
         return true;
     });
+    console.log('✅ Boss disponibles:', availableBosses.length);
     
     let html = `
         <div style="padding: 20px;">
@@ -546,7 +553,9 @@ window.renderBossBattlePage = function() {
     });
     
     html += `</div></div>`;
+    console.log('✅ HTML généré, longueur:', html.length);
     container.innerHTML = html;
+    console.log('✅ Contenu injecté dans le container');
 };
 
 // Note: Les fonctions de combat complètes seront ajoutées dans la prochaine étape
@@ -11014,7 +11023,12 @@ window.switchPage=function(pageName){
     
     const pages=document.querySelectorAll('.page');
     pages.forEach(page=>page.classList.remove('active'));
-    const targetPage=document.getElementById(`${pageName}-page`);
+    // Gérer les cas spéciaux pour les noms de pages avec tirets
+    let pageId = `${pageName}-page`;
+    if (pageName === 'bossBattle' || pageName === 'boss-battle') {
+        pageId = 'boss-battle-page';
+    }
+    const targetPage=document.getElementById(pageId);
     if(targetPage)targetPage.classList.add('active');
     const navItems=document.querySelectorAll('.nav-item');
     navItems.forEach(item=>item.classList.remove('active'));
@@ -11073,7 +11087,15 @@ window.switchPage=function(pageName){
         }
     }
     if(pageName==='leaderboard'){renderLeaderboard('pdg');}
-    if(pageName==='bossBattle'||pageName==='boss-battle'){if(typeof renderBossBattlePage==='function')renderBossBattlePage();}
+    if(pageName==='bossBattle'||pageName==='boss-battle'){
+        console.log('🔍 Navigation vers bossBattle détectée');
+        if(typeof renderBossBattlePage==='function'){
+            console.log('✅ renderBossBattlePage est une fonction, appel...');
+            renderBossBattlePage();
+        } else {
+            console.error('❌ renderBossBattlePage n\'est pas une fonction!', typeof renderBossBattlePage);
+        }
+    }
 }
 function renderBuddyHomeDisplay() {
     const container = document.getElementById('buddy-home-display');
@@ -15256,47 +15278,47 @@ if (!gameState.customization) {
 const CUSTOMIZATION_DATA = {
     icons: [
         { id: 'default', name: 'Dresseur', icon: 'icon_trainer', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png', unlockCondition: 'Débloqué par défaut', unlocked: true },
-        { id: 'kanto_trainer', name: 'Dresseur Kanto', icon: 'icon_trainer', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/red.png', unlockCondition: 'Pokédex Kanto complété à 40%', check: () => {
+        { id: 'kanto_trainer', name: 'Dresseur Kanto', icon: 'icon_trainer', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png', unlockCondition: 'Pokédex Kanto complété à 40%', check: () => {
             const kantoCaptures = Array.from(gameState.captured).filter(id => id >= 1 && id <= 151).length;
             return kantoCaptures >= 60; // 40% de 151
         }},
-        { id: 'kanto_master', name: 'Maître Kanto', icon: 'icon_trainer', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/blue.png', unlockCondition: 'Pokédex Kanto 100%', check: () => {
+        { id: 'kanto_master', name: 'Maître Kanto', icon: 'icon_trainer', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png', unlockCondition: 'Pokédex Kanto 100%', check: () => {
             const kantoCaptures = Array.from(gameState.captured).filter(id => id >= 1 && id <= 151).length;
             return kantoCaptures === 151;
         }},
-        { id: 'johto_trainer', name: 'Dresseur Johto', icon: 'icon_trainer', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/ethan.png', unlockCondition: 'Johto 40%', check: () => {
+        { id: 'johto_trainer', name: 'Dresseur Johto', icon: 'icon_trainer', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png', unlockCondition: 'Johto 40%', check: () => {
             const johtoCaptures = Array.from(gameState.captured).filter(id => id >= 152 && id <= 251).length;
             return johtoCaptures >= 40; // 40% de 100
         }},
-        { id: 'shiny_master_kanto', name: 'Maître Shiny Kanto', icon: '✨', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/red-gen3.png', unlockCondition: '50 Shinies Kanto', check: () => {
+        { id: 'shiny_master_kanto', name: 'Maître Shiny Kanto', icon: '✨', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/red.png', unlockCondition: '50 Shinies Kanto', check: () => {
             const kantoShinies = Array.from(gameState.shinies).filter(id => id >= 1 && id <= 151).length;
             return kantoShinies >= 50;
         }},
-        { id: 'fire_champion', name: 'Champion des Flammes', icon: '🔥', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/flannery.png', unlockCondition: 'Posséder 10 Pokémon Feu shiny', check: () => {
+        { id: 'fire_champion', name: 'Champion des Flammes', icon: '🔥', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png', unlockCondition: 'Posséder 10 Pokémon Feu shiny', check: () => {
             const fireShinies = Array.from(gameState.shinies).filter(id => {
                 const types = POKEMON_TYPES[id] || [];
                 return types.includes('Feu');
             }).length;
             return fireShinies >= 10;
         }},
-        { id: 'expedition_scout', name: 'Éclaireur de l\'Expédition', icon: '🗺️', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/brendan.png', unlockCondition: 'Participer à 10 Expéditions', check: () => {
+        { id: 'expedition_scout', name: 'Éclaireur de l\'Expédition', icon: '🗺️', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png', unlockCondition: 'Participer à 10 Expéditions', check: () => {
             return (gameState.rogue?.runsCompleted || 0) >= 10;
         }},
-        { id: 'expedition_veteran', name: 'Vétéran de l\'Expédition', icon: '⚔️', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/steven.png', unlockCondition: 'Participer à 20 Expéditions', check: () => {
+        { id: 'expedition_veteran', name: 'Vétéran de l\'Expédition', icon: '⚔️', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png', unlockCondition: 'Participer à 20 Expéditions', check: () => {
             return (gameState.rogue?.runsCompleted || 0) >= 20;
         }},
-        { id: 'poker_player', name: 'Poké-Pokerist', icon: '🃏', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/giovanni.png', unlockCondition: 'Finir une run complète de Poké-Poker (8 badges)', check: () => {
+        { id: 'poker_player', name: 'Poké-Pokerist', icon: '🃏', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png', unlockCondition: 'Finir une run complète de Poké-Poker (8 badges)', check: () => {
             return (gameState.poker?.badges?.length || 0) >= 8;
         }},
-        { id: 'poker_god', name: 'Poké-Poker God', icon: '👑', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/cynthia.png', unlockCondition: 'Finir une run en utilisant 0 défausse', check: () => {
+        { id: 'poker_god', name: 'Poké-Poker God', icon: '👑', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png', unlockCondition: 'Finir une run en utilisant 0 défausse', check: () => {
             // À implémenter : tracker les défausses utilisées dans une run
             return false; // Placeholder
         }},
-        { id: 'fossil_collector', name: 'Collectionneur Fossile', icon: '🦴', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/roark.png', unlockCondition: 'Obtenir tous les fossiles', check: () => {
+        { id: 'fossil_collector', name: 'Collectionneur Fossile', icon: '🦴', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png', unlockCondition: 'Obtenir tous les fossiles', check: () => {
             const fossils = [138, 139, 140, 141, 142]; // Amonita, Amonistar, Kabuto, Kabutops, Ptéra
             return fossils.every(id => gameState.captured.has(id));
         }},
-        { id: 'team_rocket', name: 'Team Rocket', icon: '🌙', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/teamrocket.png', unlockCondition: 'Échouer à capturer 10 pokémons d\'affilés', check: () => {
+        { id: 'team_rocket', name: 'Team Rocket', icon: '🌙', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png', unlockCondition: 'Échouer à capturer 10 pokémons d\'affilés', check: () => {
             return (gameState.totalFlees || 0) >= 10 && gameState.streak === 0;
         }}
     ],

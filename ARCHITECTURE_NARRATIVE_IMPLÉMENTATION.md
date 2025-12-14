@@ -243,3 +243,4 @@ gameState.system.porygonIntegrity = 0; // Intégrité de Porygon (0-100)
 
 
 
+
