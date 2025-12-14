@@ -1916,7 +1916,10 @@ function checkModuleUnlocks() {
         
         if (shouldUnlock && module.dialogue) {
             module.unlocked = true;
-            triggerNarrative(module.dialogue);
+            // CORRECTION : Ne déclencher le dialogue que s'il n'a pas déjà été vu
+            if (!gameState.system.narrativeFlags.includes(module.dialogue)) {
+                triggerNarrative(module.dialogue);
+            }
         }
     });
 }
@@ -7121,7 +7124,7 @@ let currentPokemon=null,currentFishingPokemon=null,captureCooldown=null,streakTo
 
 function getRarity(pokemonId){for(const[rarity,ids]of Object.entries(POKEMON_DATA)){if(ids.includes(pokemonId))return rarity;}return'common';}
 
-function selectPokemon(pool='spawn',waterOnly=false){const rates=pool==='blindbox'?{uncommon:60,rare:25,super_rare:12,legendary:3}:{common:55,uncommon:25,rare:12,super_rare:6,legendary:2};const hasIncenseBoost=gameState.activeBoosts.some(b=>b.type==='incensefleur'&&b.endTime>Date.now());if(hasIncenseBoost){rates.rare*=1.2;rates.super_rare*=1.2;rates.legendary*=1.2;}const rand=Math.random()*100;let cumulative=0,rarity='common';for(const[r,rate]of Object.entries(rates)){cumulative+=rate;if(rand<cumulative){rarity=r;break;}}const currentRegion=getCurrentUnlockedRegion();let pokemonPool=filterPokemonByRegion(POKEMON_DATA[rarity]||[],currentRegion);if(pokemonPool.length===0){for(const r of['common','uncommon','rare','super_rare','legendary']){const altPool=filterPokemonByRegion(POKEMON_DATA[r]||[],currentRegion);if(altPool.length>0){pokemonPool=altPool;rarity=r;break;}}if(pokemonPool.length===0){pokemonPool=filterPokemonByRegion(POKEMON_DATA[rarity]||[],'Kanto');}}if(waterOnly){pokemonPool=pokemonPool.filter(id=>WATER_TYPES.includes(id));if(pokemonPool.length===0){const currentRegionWater=WATER_TYPES.filter(id=>{const region=getPokemonRegion(id);return region===currentRegion;});pokemonPool=currentRegionWater.length>0?currentRegionWater:WATER_TYPES.filter(id=>id>=1&&id<=151);}}const id=pokemonPool[Math.floor(Math.random()*pokemonPool.length)];const hasLuckyBoost=gameState.activeBoosts.some(b=>b.type==='lucky_charm'&&b.endTime>Date.now());let shinyRate=(1/256)+(hasLuckyBoost?0.005:0)+(Math.floor(gameState.streak/5)*0.01);const buddyId=gameState.buddy?.activeBuddyId;const buddy=buddyId?gameState.buddy.buddies[buddyId]:null;if(buddy&&(buddy.level||1)>=7)shinyRate+=0.01;let isShiny=Math.random()<shinyRate;if(id===130)isShiny=false;return{id,name:FRENCH_NAMES[id]||`Pokémon #${id}`,rarity,isShiny};}
+function selectPokemon(pool='spawn',waterOnly=false){const rates=pool==='blindbox'?{uncommon:60,rare:25,super_rare:12,legendary:3}:{common:55,uncommon:25,rare:12,super_rare:6,legendary:2};const hasIncenseBoost=gameState.activeBoosts.some(b=>b.type==='incensefleur'&&b.endTime>Date.now());if(hasIncenseBoost){rates.rare*=1.2;rates.super_rare*=1.2;rates.legendary*=1.2;}const rand=Math.random()*100;let cumulative=0,rarity='common';for(const[r,rate]of Object.entries(rates)){cumulative+=rate;if(rand<cumulative){rarity=r;break;}}const currentRegion=getCurrentUnlockedRegion();let pokemonPool=filterPokemonByRegion(POKEMON_DATA[rarity]||[],currentRegion);if(pokemonPool.length===0){for(const r of['common','uncommon','rare','super_rare','legendary']){const altPool=filterPokemonByRegion(POKEMON_DATA[r]||[],currentRegion);if(altPool.length>0){pokemonPool=altPool;rarity=r;break;}}if(pokemonPool.length===0){const regionRange={Kanto:{min:1,max:151},Johto:{min:152,max:251},Hoenn:{min:252,max:386}}[currentRegion]||{min:1,max:151};const allInRegion=Array.from({length:regionRange.max-regionRange.min+1},(_,i)=>regionRange.min+i);pokemonPool=allInRegion.filter(id=>POKEMON_DATA.common.includes(id)||POKEMON_DATA.uncommon.includes(id)||POKEMON_DATA.rare.includes(id)||POKEMON_DATA.super_rare.includes(id)||POKEMON_DATA.legendary.includes(id));if(pokemonPool.length===0)pokemonPool=[regionRange.min];}}if(waterOnly){pokemonPool=pokemonPool.filter(id=>WATER_TYPES.includes(id));if(pokemonPool.length===0){const currentRegionWater=WATER_TYPES.filter(id=>{const region=getPokemonRegion(id);return region===currentRegion;});pokemonPool=currentRegionWater.length>0?currentRegionWater:WATER_TYPES.filter(id=>{const r=getPokemonRegion(id);return r===currentRegion;});}}const id=pokemonPool[Math.floor(Math.random()*pokemonPool.length)];const hasLuckyBoost=gameState.activeBoosts.some(b=>b.type==='lucky_charm'&&b.endTime>Date.now());let shinyRate=(1/256)+(hasLuckyBoost?0.005:0)+(Math.floor(gameState.streak/5)*0.01);const buddyId=gameState.buddy?.activeBuddyId;const buddy=buddyId?gameState.buddy.buddies[buddyId]:null;if(buddy&&(buddy.level||1)>=7)shinyRate+=0.01;let isShiny=Math.random()<shinyRate;if(id===130)isShiny=false;return{id,name:FRENCH_NAMES[id]||`Pokémon #${id}`,rarity,isShiny};}
 
 // --- Fonction utilitaire pour obtenir le buddy actif ---
 function getCurrentBuddy() {
@@ -7219,11 +7222,35 @@ function selectNewPokemonForBlindBox() {
         
         // Dernier recours absolu
         if (pokemonPool.length === 0) {
-            // On autorise les doublons si tout est capturé
+            // On autorise les doublons si tout est capturé, mais TOUJOURS dans la région actuelle
             if (POKEMON_DATA[rarity]) {
                 pokemonPool = filterPokemonByRegion(POKEMON_DATA[rarity], currentRegion);
-                // Si toujours vide (ex: région vide), on prend Kanto
-                if (pokemonPool.length === 0) pokemonPool = POKEMON_DATA['common'] || [19];
+            }
+            
+            // Si toujours vide, chercher dans toutes les raretés de la région actuelle
+            if (pokemonPool.length === 0) {
+                for (const r of ['common', 'uncommon', 'rare', 'super_rare', 'legendary']) {
+                    if (!POKEMON_DATA[r]) continue;
+                    const regionPool = filterPokemonByRegion(POKEMON_DATA[r], currentRegion);
+                    if (regionPool.length > 0) {
+                        pokemonPool = regionPool;
+                        rarity = r;
+                        break;
+                    }
+                }
+            }
+            
+            // Si vraiment rien dans la région actuelle (ne devrait jamais arriver), donner un Pokémon de la région
+            if (pokemonPool.length === 0) {
+                const regionRange = {
+                    'Kanto': { min: 1, max: 151 },
+                    'Johto': { min: 152, max: 251 },
+                    'Hoenn': { min: 252, max: 386 }
+                }[currentRegion] || { min: 1, max: 151 };
+                // Prendre un Pokémon aléatoire de la région (même si déjà capturé)
+                const allInRegion = Array.from({length: regionRange.max - regionRange.min + 1}, (_, i) => regionRange.min + i);
+                pokemonPool = allInRegion.filter(id => POKEMON_DATA.common.includes(id) || POKEMON_DATA.uncommon.includes(id) || POKEMON_DATA.rare.includes(id) || POKEMON_DATA.super_rare.includes(id) || POKEMON_DATA.legendary.includes(id));
+                if (pokemonPool.length === 0) pokemonPool = [regionRange.min]; // Fallback absolu : premier Pokémon de la région
             }
         }
     }
@@ -7372,6 +7399,12 @@ function addToCollection(pokemonId,isShiny,isGolden=false){
         setTimeout(() => triggerMissingNoEvent(), 2000); // Délai de 2 secondes pour laisser le temps à l'animation de capture
     }
     
+    // CORRECTION : Vérifier si Johto est complété (100/100) pour déclencher MissingNo pour Hoenn
+    if (region === 'Johto' && getCaughtCount('Johto') === 100 && !gameState.missingNoTriggeredJohto) {
+        gameState.missingNoTriggeredJohto = true;
+        // Le combat MissingN0 sera déclenché dans checkRegionUnlock() après le déblocage de Hoenn
+    }
+    
     updateQuestProgress('regional_'+region,gameState.regionProgress[region].captured);if(gameState.inventory.mystery_egg>0){gameState.mysteryEggProgress=(gameState.mysteryEggProgress||0)+1;if(gameState.mysteryEggProgress>=50){hatchMysteryEgg();}}advanceEggProgress(1);updateQuestProgress('captures',1);if(isShiny)updateQuestProgress('shinies',1);
     // NOTE: rarity est déjà déclaré au début de la fonction, pas besoin de le redéclarer
     if(['rare','super_rare','legendary'].includes(rarity)){gameState.rareCaptureCount=(gameState.rareCaptureCount||0)+1;updateQuestProgress('rare_captures',1);}if(rarity==='legendary')updateQuestProgress('legendaries',1);const buddyId=gameState.buddy?.activeBuddyId;if(buddyId){let buddyXP=1;if(rarity==='rare')buddyXP=2;if(rarity==='super_rare')buddyXP=3;if(rarity==='legendary')buddyXP=5;if(isShiny)buddyXP+=5;addBuddyXP(buddyXP);}checkRegionUnlock();saveGame();return wasDuplicate;}
@@ -7395,13 +7428,19 @@ function checkRegionUnlock(){
         if (typeof window.triggerSystemOverride === 'function') {
             window.triggerSystemOverride('region_unlock_johto', () => {
                 unlockRegion('Johto');
-                triggerNarrative('system_reboot_johto');
+                // CORRECTION : Ne déclencher le dialogue que s'il n'a pas déjà été vu
+                if (!gameState.system.narrativeFlags.includes('system_reboot_johto')) {
+                    triggerNarrative('system_reboot_johto');
+                }
                 showToast('🎉 Région Johto débloquée ! Vous avez complété le Pokédex Kanto (151/151)', 'success');
                 saveGame();
             });
         } else {
             unlockRegion('Johto');
-            triggerNarrative('system_reboot_johto');
+            // CORRECTION : Ne déclencher le dialogue que s'il n'a pas déjà été vu
+            if (!gameState.system.narrativeFlags.includes('system_reboot_johto')) {
+                triggerNarrative('system_reboot_johto');
+            }
             showToast('🎉 Région Johto débloquée ! Vous avez complété le Pokédex Kanto (151/151)', 'success');
             saveGame();
         }
@@ -7414,13 +7453,29 @@ function checkRegionUnlock(){
         if (typeof window.triggerSystemOverride === 'function') {
             window.triggerSystemOverride('region_unlock_hoenn', () => {
                 unlockRegion('Hoenn');
-                triggerNarrative('system_reboot_hoenn');
+                // CORRECTION : Ne déclencher le dialogue que s'il n'a pas déjà été vu
+                if (!gameState.system.narrativeFlags.includes('system_reboot_hoenn')) {
+                    triggerNarrative('system_reboot_hoenn');
+                }
+                // CORRECTION : Déclencher le combat MissingN0 pour Johto → Hoenn (comme Kanto → Johto)
+                if (!gameState.missingNoTriggeredJohto) {
+                    gameState.missingNoTriggeredJohto = true;
+                    setTimeout(() => triggerMissingNoEvent(), 2000);
+                }
                 showToast('🎉 Région Hoenn débloquée ! Vous avez complété le Pokédex Johto (100/100)', 'success');
                 saveGame();
             });
         } else {
             unlockRegion('Hoenn');
-            triggerNarrative('system_reboot_hoenn');
+            // CORRECTION : Ne déclencher le dialogue que s'il n'a pas déjà été vu
+            if (!gameState.system.narrativeFlags.includes('system_reboot_hoenn')) {
+                triggerNarrative('system_reboot_hoenn');
+            }
+            // CORRECTION : Déclencher le combat MissingN0 pour Johto → Hoenn (comme Kanto → Johto)
+            if (!gameState.missingNoTriggeredJohto) {
+                gameState.missingNoTriggeredJohto = true;
+                setTimeout(() => triggerMissingNoEvent(), 2000);
+            }
             showToast('🎉 Région Hoenn débloquée ! Vous avez complété le Pokédex Johto (100/100)', 'success');
             saveGame();
         }
@@ -12043,9 +12098,22 @@ function selectPokemonForExpedition(floorIndex, targetId){
                 break;
             }
         }
-        // Dernier fallback : Kanto
+        // Dernier fallback : Prendre un Pokémon de la région actuelle (même si déjà capturé)
         if(pokemonPool.length === 0) {
-            pokemonPool = filterPokemonByRegion(POKEMON_DATA.common || [], 'Kanto');
+            const regionRange = {
+                'Kanto': { min: 1, max: 151 },
+                'Johto': { min: 152, max: 251 },
+                'Hoenn': { min: 252, max: 386 }
+            }[currentRegion] || { min: 1, max: 151 };
+            const allInRegion = Array.from({length: regionRange.max - regionRange.min + 1}, (_, i) => regionRange.min + i);
+            pokemonPool = allInRegion.filter(id => 
+                POKEMON_DATA.common.includes(id) || 
+                POKEMON_DATA.uncommon.includes(id) || 
+                POKEMON_DATA.rare.includes(id) || 
+                POKEMON_DATA.super_rare.includes(id) || 
+                POKEMON_DATA.legendary.includes(id)
+            );
+            if(pokemonPool.length === 0) pokemonPool = [regionRange.min]; // Fallback absolu
         }
     }
     
@@ -13925,6 +13993,9 @@ window.applySaveData = function(data) {
         if (!gameState.pendingLevelUps) gameState.pendingLevelUps = [];
         if (!gameState.blindBoxBonus) gameState.blindBoxBonus = 0;
         if (!gameState.fishingHistory) gameState.fishingHistory = [];
+        // CORRECTION : Restaurer missingNoTriggered pour éviter les répétitions
+        if (data.missingNoTriggered !== undefined) gameState.missingNoTriggered = data.missingNoTriggered;
+        if (data.missingNoTriggeredJohto !== undefined) gameState.missingNoTriggeredJohto = data.missingNoTriggeredJohto;
         if (!gameState.research) gameState.research = { unlocked: false, energy: 0, totalEnergyProduced: 0, clickMultiplier: 1, lastSaveTime: Date.now(), automationLevel: 0, habitats: { 'forest': { name: 'Forêt', type: 'Grass', level: 0, unlocked: true, slots: 1, assigned: [], mascotte: null }, 'ocean': { name: 'Océan', type: 'Water', level: 0, unlocked: false, slots: 1, assigned: [], mascotte: null }, 'cave': { name: 'Grotte', type: 'Rock', level: 0, unlocked: false, slots: 1, assigned: [], mascotte: null }, 'volcano': { name: 'Volcan', type: 'Fire', level: 0, unlocked: false, slots: 1, assigned: [], mascotte: null }, 'power_plant': { name: 'Centrale', type: 'Electric', level: 0, unlocked: false, slots: 1, assigned: [], mascotte: null }, 'graveyard': { name: 'Cimetière', type: 'Ghost', level: 0, unlocked: false, slots: 1, assigned: [], mascotte: null } } };
         if (!gameState.narrative) gameState.narrative = { queue: [], history: [], currentSpeaker: 'porygon' };
         
@@ -13937,6 +14008,21 @@ window.applySaveData = function(data) {
                 porygonMood: 'PANIC',
                 narrativeFlags: []
             };
+        }
+        
+        // CORRECTION : Restaurer les narrativeFlags depuis les données sauvegardées
+        if (data.system && data.system.narrativeFlags) {
+            if (!gameState.system.narrativeFlags) gameState.system.narrativeFlags = [];
+            // Fusionner les flags (éviter les doublons)
+            gameState.system.narrativeFlags = [...new Set([...gameState.system.narrativeFlags, ...data.system.narrativeFlags])];
+        }
+        
+        // Restaurer les autres propriétés du système
+        if (data.system) {
+            if (data.system.currentPhase) gameState.system.currentPhase = data.system.currentPhase;
+            if (data.system.integrity !== undefined) gameState.system.integrity = data.system.integrity;
+            if (data.system.glitchLevel !== undefined) gameState.system.glitchLevel = data.system.glitchLevel;
+            if (data.system.porygonMood) gameState.system.porygonMood = data.system.porygonMood;
         }
         
         // Initialiser les modules avec conditions narratives
@@ -15029,9 +15115,23 @@ let currentLineIndex = 0;
 let dialogueTimeout = null;
 
 function checkNarrativeTriggers() {
+    // CORRECTION : Vérifier les flags narratifs pour éviter les répétitions
+    if (!gameState.system) gameState.system = { narrativeFlags: [] };
+    if (!gameState.system.narrativeFlags) gameState.system.narrativeFlags = [];
+    if (!gameState.narrative) gameState.narrative = { history: [] };
+    if (!gameState.narrative.history) gameState.narrative.history = [];
+    
     for (const [id, data] of Object.entries(DIALOGUES)) {
-        if (!gameState.narrative.history.includes(id) && data.trigger()) {
+        // Ne pas déclencher si déjà vu (vérifier les deux systèmes)
+        const alreadySeen = gameState.narrative.history.includes(id) || 
+                           gameState.system.narrativeFlags.includes(id);
+        
+        if (!alreadySeen && data.trigger && typeof data.trigger === 'function' && data.trigger()) {
             startDialogue(id);
+            // Ajouter au flag pour éviter les répétitions
+            if (!gameState.system.narrativeFlags.includes(id)) {
+                gameState.system.narrativeFlags.push(id);
+            }
             break;
         }
     }
@@ -20298,7 +20398,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     updateProfileDisplay();
     updateTopBarDisplay();
     updateCustomizationNotification();
-    checkNarrativeTriggers();
+    // CORRECTION : Ne pas déclencher les dialogues au chargement si le joueur est déjà avancé
+    // Les dialogues seront déclenchés naturellement lors de la progression
+    // checkNarrativeTriggers(); // Désactivé au chargement pour éviter les répétitions
     const spawnBtn=document.getElementById('spawn-btn');
     if(spawnBtn){
         const spawnBtnText=document.getElementById('spawn-btn-text');
