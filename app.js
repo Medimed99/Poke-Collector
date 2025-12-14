@@ -464,8 +464,7 @@ function createBattleUnit(pokemonId, isShiny = false) {
 // ===== FONCTIONS DE COMBAT BOSS =====
 
 // État du combat actuel
-let currentBattleState = null;
-let battleATBInterval = null;
+// Note: currentBattleState et battleATBInterval sont déclarés dans boss_battle_system.js
 
 // Fonction pour afficher la page de sélection de Boss
 window.renderBossBattlePage = function() {
@@ -2930,9 +2929,9 @@ function getOfficialSpriteUrl(pokemonId, isShiny = false) {
 
 // GENESIS REBOOT - Sprite MissingNo (Boss Final)
 function getMissingNoSpriteUrl() {
-    // MissingNo utilise un sprite glitché spécial
-    // Source: Bulbagarden Archives (domaine public)
-    return 'https://archives.bulbagarden.net/media/upload/thumb/9/95/Missingno_RB.png/96px-Missingno_RB.png';
+    // Source stable : Wikimedia Commons (Format PNG original)
+    // C'est la forme "L-Block" classique pixelisée
+    return 'https://upload.wikimedia.org/wikipedia/commons/3/3b/MissingNo.png';
 }
 
 function createCard(pokemonId) {
@@ -7144,7 +7143,7 @@ const ITEM_API_MAP = {
     // Lootboxes
     lootbox: 'explorer-kit',
     rarebox: 'town-map',
-    suprarebox: 'treasure-chest',
+    suprarebox: 'big-nugget', // Utiliser big-nugget au lieu de treasure-chest (qui n'existe peut-être pas)
     ultrabox: 'tm-case',
     // Expédition (Rogue)
     expedition_ticket: 'contest-pass',
@@ -7185,7 +7184,26 @@ const ITEM_API_MAP = {
     champion: 'kings-rock',
     // Autres items
     joker: 'tm-normal',
-    booster_tcg: 'card-key'
+    booster_tcg: 'card-key',
+    // Items spéciaux
+    marin_lure: 'super-rod',
+    exp_charm: 'exp-share',
+    lucky_charm: 'lucky-egg',
+    charm_collection: 'shiny-charm',
+    incensefleur: 'full-incense',
+    // Icônes de menu/navigation
+    icon_trainer: 'poke-ball',
+    icon_quests: 'vs-seeker',
+    icon_inventory: 'poke-ball',
+    icon_pokedex: 'poke-ball',
+    icon_shop: 'poke-ball',
+    icon_research: 'cell-battery',
+    icon_boss_battle: 'kings-rock',
+    icon_blindbox: 'explorer-kit',
+    icon_fishing: 'super-rod',
+    icon_stats_blindbox: 'explorer-kit',
+    icon_stats_fishing: 'super-rod',
+    icon_stats_coins: 'amulet-coin'
 };
 
 // Mapping des émojis vers les IDs d'items API (pour compatibilité)
@@ -7392,10 +7410,10 @@ const ALL_ITEMS = {
     pinap:{name:'Baie Pinap x5',icon:'pinap',desc:'×2 coins si capture',price:600,qty:5},
     ceriz:{name:'Baie Ceriz x3',icon:'ceriz',desc:'+100% capture Shiny',price:2000,qty:3},
     incensefleur:{name:'Encens Mystique',icon:'full-incense',desc:'+20% rares (10min)',price:2000,qty:1},
-    marin_lure:{name:'Appât Marin',icon:'super-rod',desc:'×2 captures eau (10min)',price:1200,qty:1},
-    exp_charm:{name:'Amulette Exp',icon:'exp-share',desc:'+25% XP (15min)',price:1500,qty:1},
-    lucky_charm:{name:'Talisman Chanceux',icon:'lucky-egg',desc:'+0.5% shiny (30min)',price:3500,qty:1},
-    charm_collection:{name:'Charm Collection',icon:'shiny-charm',desc:'+10% nouveau Pokémon (20mn)',price:4000,qty:1},
+    marin_lure:{name:'Appât Marin',icon:'marin_lure',desc:'×2 captures eau (10min)',price:1200,qty:1},
+    exp_charm:{name:'Amulette Exp',icon:'exp_charm',desc:'+25% XP (15min)',price:1500,qty:1},
+    lucky_charm:{name:'Talisman Chanceux',icon:'lucky_charm',desc:'+0.5% shiny (30min)',price:3500,qty:1},
+    charm_collection:{name:'Charm Collection',icon:'charm_collection',desc:'+10% nouveau Pokémon (20mn)',price:4000,qty:1},
     legendary_radar:{name:'Radar Légendaire',icon:'vs-seeker',desc:'Rencontre légendaire',price:0,qty:1},
     fire_stone:{name:'Pierre Feu',icon:'fire_stone',desc:'Évolue en feu',price:2500,qty:1},
     water_stone:{name:'Pierre Eau',icon:'water_stone',desc:'Évolue en eau',price:2500,qty:1},
@@ -15237,16 +15255,16 @@ if (!gameState.customization) {
 // Structures de données pour la personnalisation
 const CUSTOMIZATION_DATA = {
     icons: [
-        { id: 'default', name: 'Dresseur', icon: '👤', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png', unlockCondition: 'Débloqué par défaut', unlocked: true },
-        { id: 'kanto_trainer', name: 'Dresseur Kanto', icon: '👤', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/red.png', unlockCondition: 'Pokédex Kanto complété à 40%', check: () => {
+        { id: 'default', name: 'Dresseur', icon: 'icon_trainer', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/1.png', unlockCondition: 'Débloqué par défaut', unlocked: true },
+        { id: 'kanto_trainer', name: 'Dresseur Kanto', icon: 'icon_trainer', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/red.png', unlockCondition: 'Pokédex Kanto complété à 40%', check: () => {
             const kantoCaptures = Array.from(gameState.captured).filter(id => id >= 1 && id <= 151).length;
             return kantoCaptures >= 60; // 40% de 151
         }},
-        { id: 'kanto_master', name: 'Maître Kanto', icon: '👤', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/blue.png', unlockCondition: 'Pokédex Kanto 100%', check: () => {
+        { id: 'kanto_master', name: 'Maître Kanto', icon: 'icon_trainer', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/blue.png', unlockCondition: 'Pokédex Kanto 100%', check: () => {
             const kantoCaptures = Array.from(gameState.captured).filter(id => id >= 1 && id <= 151).length;
             return kantoCaptures === 151;
         }},
-        { id: 'johto_trainer', name: 'Dresseur Johto', icon: '👤', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/ethan.png', unlockCondition: 'Johto 40%', check: () => {
+        { id: 'johto_trainer', name: 'Dresseur Johto', icon: 'icon_trainer', iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/ethan.png', unlockCondition: 'Johto 40%', check: () => {
             const johtoCaptures = Array.from(gameState.captured).filter(id => id >= 152 && id <= 251).length;
             return johtoCaptures >= 40; // 40% de 100
         }},
@@ -15723,8 +15741,12 @@ function updateProfileDisplay() {
                 const timeout = setTimeout(() => {
                     if (!img.complete || img.naturalWidth === 0) {
                         iconEl.innerHTML = '';
-                        iconEl.textContent = selectedIcon.icon || '👤';
-                        iconEl.style.cssText = 'font-size: 3em; flex-shrink: 0; display: block;';
+                        if (selectedIcon.icon && selectedIcon.icon.startsWith('icon_')) {
+                            iconEl.innerHTML = getItemIconDisplay(selectedIcon.icon, '3em');
+                        } else {
+                            iconEl.innerHTML = getItemIconDisplay('icon_trainer', '3em');
+                        }
+                        iconEl.style.cssText = 'font-size: 3em; flex-shrink: 0; display: flex; align-items: center; justify-content: center;';
                     }
                 }, 5000);
                 
@@ -15733,19 +15755,26 @@ function updateProfileDisplay() {
                     if (!img.complete || img.naturalWidth === 0 || img.offsetWidth === 0 || img.offsetHeight === 0) {
                         clearTimeout(timeout);
                         iconEl.innerHTML = '';
-                        iconEl.textContent = selectedIcon.icon || '👤';
-                        iconEl.style.cssText = 'font-size: 3em; flex-shrink: 0; display: block;';
+                        if (selectedIcon.icon && selectedIcon.icon.startsWith('icon_')) {
+                            iconEl.innerHTML = getItemIconDisplay(selectedIcon.icon, '3em');
+                        } else {
+                            iconEl.innerHTML = getItemIconDisplay('icon_trainer', '3em');
+                        }
+                        iconEl.style.cssText = 'font-size: 3em; flex-shrink: 0; display: flex; align-items: center; justify-content: center;';
                     }
                 }, 1000);
                 
                 img.onerror = function() {
                     clearTimeout(timeout);
                     clearTimeout(quickCheck);
-                    // Fallback vers l'emoji si l'image ne charge pas
+                    // Fallback vers l'icône API si l'image ne charge pas
                     iconEl.innerHTML = '';
-                    iconEl.textContent = selectedIcon.icon || '👤';
-                    iconEl.style.fontSize = '3em';
-                    iconEl.style.display = 'block';
+                    if (selectedIcon.icon && selectedIcon.icon.startsWith('icon_')) {
+                        iconEl.innerHTML = getItemIconDisplay(selectedIcon.icon, '3em');
+                    } else {
+                        iconEl.innerHTML = getItemIconDisplay('icon_trainer', '3em');
+                    }
+                    iconEl.style.cssText = 'font-size: 3em; flex-shrink: 0; display: flex; align-items: center; justify-content: center;';
                 };
                 img.onload = function() {
                     clearTimeout(timeout);
@@ -15758,8 +15787,12 @@ function updateProfileDisplay() {
                     } else {
                         // Si l'image n'est pas vraiment chargée, fallback
                         iconEl.innerHTML = '';
-                        iconEl.textContent = selectedIcon.icon || '👤';
-                        iconEl.style.cssText = 'font-size: 3em; flex-shrink: 0; display: block;';
+                        if (selectedIcon.icon && selectedIcon.icon.startsWith('icon_')) {
+                            iconEl.innerHTML = getItemIconDisplay(selectedIcon.icon, '3em');
+                        } else {
+                            iconEl.innerHTML = getItemIconDisplay('icon_trainer', '3em');
+                        }
+                        iconEl.style.cssText = 'font-size: 3em; flex-shrink: 0; display: flex; align-items: center; justify-content: center;';
                     }
                 };
                 iconEl.innerHTML = '';
@@ -21643,6 +21676,73 @@ document.addEventListener('DOMContentLoaded',()=>{
     updateProfileDisplay();
     updateTopBarDisplay();
     updateCustomizationNotification();
+    
+    // Initialiser toutes les icônes API au chargement
+    setTimeout(() => {
+        // Mettre à jour les icônes de menu/navigation
+        const topbarIcon = document.getElementById('topbar-icon');
+        if (topbarIcon && !topbarIcon.innerHTML) {
+            topbarIcon.innerHTML = getItemIconDisplay('icon_trainer', '1.2em');
+        }
+        
+        // Hub icons
+        const hubIconQuests = document.getElementById('hub-icon-quests');
+        const hubIconInventory = document.getElementById('hub-icon-inventory');
+        const hubIconPokedex = document.getElementById('hub-icon-pokedex');
+        const hubIconShop = document.getElementById('hub-icon-shop');
+        const hubIconResearch = document.getElementById('hub-icon-research');
+        const hubIconBossBattle = document.getElementById('hub-icon-bossBattle');
+        
+        if (hubIconQuests && !hubIconQuests.innerHTML) hubIconQuests.innerHTML = getItemIconDisplay('icon_quests', '2em');
+        if (hubIconInventory && !hubIconInventory.innerHTML) hubIconInventory.innerHTML = getItemIconDisplay('icon_inventory', '2em');
+        if (hubIconPokedex && !hubIconPokedex.innerHTML) hubIconPokedex.innerHTML = getItemIconDisplay('icon_pokedex', '2em');
+        if (hubIconShop && !hubIconShop.innerHTML) hubIconShop.innerHTML = getItemIconDisplay('icon_shop', '2em');
+        if (hubIconResearch && !hubIconResearch.innerHTML) hubIconResearch.innerHTML = getItemIconDisplay('icon_research', '2em');
+        if (hubIconBossBattle && !hubIconBossBattle.innerHTML) hubIconBossBattle.innerHTML = getItemIconDisplay('icon_boss_battle', '2em');
+        
+        // Navigation icons
+        const navIconHome = document.getElementById('nav-icon-home');
+        if (navIconHome && !navIconHome.innerHTML) {
+            navIconHome.innerHTML = getItemIconDisplay('icon_blindbox', '24px');
+        }
+        
+        // Fishing icons
+        const fishingTabButton = document.getElementById('fishing-tab-button');
+        const fishingSectionTitle = document.getElementById('fishing-section-title');
+        const fishingTokenIcon = document.getElementById('fishing-token-icon');
+        
+        if (fishingTabButton && !fishingTabButton.innerHTML.includes('img')) {
+            fishingTabButton.innerHTML = getItemIconDisplay('icon_fishing', '1em') + ' Pêche';
+        }
+        if (fishingSectionTitle && !fishingSectionTitle.innerHTML.includes('img')) {
+            fishingSectionTitle.innerHTML = getItemIconDisplay('icon_fishing', '1.2em') + ' Pêche';
+        }
+        if (fishingTokenIcon && !fishingTokenIcon.innerHTML) {
+            fishingTokenIcon.innerHTML = getItemIconDisplay('icon_fishing', '1em');
+        }
+        
+        // Stats labels
+        const statLabelBlindbox = document.getElementById('stat-label-blindbox');
+        const statLabelFishing = document.getElementById('stat-label-fishing');
+        const statLabelCoins = document.getElementById('stat-label-coins');
+        
+        if (statLabelBlindbox && !statLabelBlindbox.innerHTML) {
+            statLabelBlindbox.innerHTML = getItemIconDisplay('icon_stats_blindbox', '1em') + ' Blind Box ouvertes';
+        }
+        if (statLabelFishing && !statLabelFishing.innerHTML) {
+            statLabelFishing.innerHTML = getItemIconDisplay('icon_stats_fishing', '1em') + ' Pokémon pêchés';
+        }
+        if (statLabelCoins && !statLabelCoins.innerHTML) {
+            statLabelCoins.innerHTML = getItemIconDisplay('icon_stats_coins', '1em') + ' Coins gagnés (total)';
+        }
+        
+        // Profile page title
+        const profilePageTitle = document.getElementById('profile-page-title');
+        if (profilePageTitle && !profilePageTitle.innerHTML.includes('img')) {
+            profilePageTitle.innerHTML = getItemIconDisplay('icon_trainer', '1.2em') + ' Profil Dresseur';
+        }
+    }, 100);
+    
     // CORRECTION : Ne pas déclencher les dialogues au chargement si le joueur est déjà avancé
     // Les dialogues seront déclenchés naturellement lors de la progression
     // checkNarrativeTriggers(); // Désactivé au chargement pour éviter les répétitions
@@ -21725,7 +21825,8 @@ document.addEventListener('DOMContentLoaded',()=>{
         shinyIcon.innerHTML = getItemIconDisplay('shiny_token', '2em');
     }
     if (streakStatIcon) {
-        streakStatIcon.innerHTML = getItemIconDisplay('type_fire', '2em');
+        // Conserver l'émoji feu pour les streaks
+        streakStatIcon.innerHTML = '🔥';
     }
     if (blindboxIcon) {
         blindboxIcon.innerHTML = getItemIconDisplay('lootbox', '2em');
