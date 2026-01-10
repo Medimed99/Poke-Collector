@@ -11,7 +11,7 @@ let currentUser = null;
 let isLoadingCloud = false;
 
 window.SupabaseManager = {
-    init: function() {
+    init: function () {
         if (typeof window.supabase === 'undefined') {
             console.warn('Supabase SDK not loaded');
             if (window.updateAuthUI) setTimeout(() => window.updateAuthUI(false), 1000);
@@ -19,21 +19,54 @@ window.SupabaseManager = {
         }
 
         try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            
-            // Vérifier session active au démarrage
-            supabase.auth.getSession().then(({ data, error }) => {
-                if (data && data.session) {
-                    currentUser = data.session.user;
-                    console.log('✅ Session active:', currentUser.email);
-                    // Attendre que app.js soit prêt avant de lancer l'auto-load
-                    setTimeout(() => this.onLoginSuccess(false, true), 500);
-                } else {
-                    if (window.updateAuthUI) window.updateAuthUI(false);
+            console.log('🔌 Initializing Supabase connection...');
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true
+                },
+                global: {
+                    headers: {
+                        'x-client-info': 'poke-collector-game'
+                    }
                 }
             });
 
+            // Vérifier session active au démarrage avec timeout
+            const sessionPromise = supabase.auth.getSession();
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Session check timeout')), 10000)
+            );
+
+            Promise.race([sessionPromise, timeoutPromise])
+                .then(({ data, error }) => {
+                    if (error) {
+                        console.error('❌ Session check error:', error);
+                        if (window.updateAuthUI) window.updateAuthUI(false);
+                        return;
+                    }
+
+                    if (data && data.session) {
+                        currentUser = data.session.user;
+                        console.log('✅ Session active:', currentUser.email);
+                        // Attendre que app.js soit prêt avant de lancer l'auto-load
+                        setTimeout(() => this.onLoginSuccess(false, true), 500);
+                    } else {
+                        console.log('ℹ️ No active session');
+                        if (window.updateAuthUI) window.updateAuthUI(false);
+                    }
+                })
+                .catch(err => {
+                    console.error('❌ Session initialization error:', err);
+                    if (window.updateAuthUI) window.updateAuthUI(false);
+                    if (window.showToast) {
+                        window.showToast('⚠️ Problème de connexion à Supabase. Le service est peut-être en cours de redémarrage.', 'warning');
+                    }
+                });
+
             supabase.auth.onAuthStateChange((event, session) => {
+                console.log('🔄 Auth state changed:', event);
                 currentUser = session?.user || null;
                 if (event === 'SIGNED_IN') this.onLoginSuccess(true, false); // Force load au login
                 if (event === 'SIGNED_OUT') {
@@ -44,22 +77,25 @@ window.SupabaseManager = {
             });
         } catch (err) {
             console.error('Supabase Init Error:', err);
+            if (window.showToast) {
+                window.showToast('❌ Erreur d\'initialisation Supabase: ' + err.message, 'error');
+            }
         }
     },
 
     // Sauvegarder
-    save: async function() {
+    save: async function () {
         if (!currentUser || !window.gameState) return { success: false, error: 'Not ready' };
         if (isLoadingCloud) return { success: false, error: 'Loading in progress' };
 
         // PROTECTION NIV 1
         if (window.gameState.level <= 1 && window.gameState.xp < 500) {
-             const { data: cloudCheck } = await supabase.from('user_progress').select('game_data').eq('user_id', currentUser.id).single();
-             if (cloudCheck && cloudCheck.game_data && parseInt(cloudCheck.game_data.level) > 1) {
-                 console.error('🛑 Sauvegarde bloquée : Cloud > Local. Chargement forcé.');
-                 this.load(true); 
-                 return { success: false, error: 'Cloud better' };
-             }
+            const { data: cloudCheck } = await supabase.from('user_progress').select('game_data').eq('user_id', currentUser.id).single();
+            if (cloudCheck && cloudCheck.game_data && parseInt(cloudCheck.game_data.level) > 1) {
+                console.error('🛑 Sauvegarde bloquée : Cloud > Local. Chargement forcé.');
+                this.load(true);
+                return { success: false, error: 'Cloud better' };
+            }
         }
 
         try {
@@ -81,12 +117,12 @@ window.SupabaseManager = {
                 last_updated: new Date().toISOString()
             };
 
-            const { error } = await supabase.from('user_progress').upsert({ 
-                user_id: currentUser.id, 
+            const { error } = await supabase.from('user_progress').upsert({
+                user_id: currentUser.id,
                 game_data: saveData,
                 updated_at: new Date().toISOString()
             }, { onConflict: 'user_id' });
-            
+
             if (error) throw error;
             console.log('✅ Sauvegarde Cloud OK');
             return { success: true };
@@ -97,7 +133,7 @@ window.SupabaseManager = {
     },
 
     // Charger - LOGIQUE D'INJECTION DIRECTE
-    load: async function(force = false) {
+    load: async function (force = false) {
         if (!currentUser) return { success: false, error: 'Not logged in' };
 
         isLoadingCloud = true;
@@ -108,7 +144,7 @@ window.SupabaseManager = {
             console.log("📥 Téléchargement Cloud...");
 
             const { data, error } = await supabase.from('user_progress').select('game_data').eq('user_id', currentUser.id).single();
-            
+
             if (error || !data) {
                 isLoadingCloud = false;
                 if (error && error.code === 'PGRST116') {
@@ -145,29 +181,29 @@ window.SupabaseManager = {
 
             if (shouldLoad) {
                 console.log("⚡ Écriture directe dans localStorage...");
-                
+
                 // 1. ÉCRIRE DANS LE DISQUE (CRUCIAL)
                 // Cela garantit que si la page recharge, on a les bonnes données
                 localStorage.setItem('pokemonGameV62', JSON.stringify(cloudData));
-                
+
                 // 2. METTRE À JOUR LA MÉMOIRE
                 // On appelle applySaveData pour rafraîchir l'UI immédiatement sans recharger
                 if (typeof window.applySaveData === 'function') {
                     window.applySaveData(cloudData);
-                    
+
                     if (force && window.showToast) {
                         window.showToast(`✅ Compte récupéré ! (Niv ${cloudLevel})`, 'success');
                     }
-                    
+
                     // 3. FORCER UN RAFRAÎCHISSEMENT VISUEL COMPLET
                     setTimeout(() => {
-                        if(window.updateUI) window.updateUI();
-                        if(window.renderInventory) window.renderInventory();
-                        if(window.updateProfileDisplay) window.updateProfileDisplay();
+                        if (window.updateUI) window.updateUI();
+                        if (window.renderInventory) window.renderInventory();
+                        if (window.updateProfileDisplay) window.updateProfileDisplay();
                         // Recharger la grille Pokédex qui est souvent le signe visible du chargement
-                        if(window.renderPokedexGrid) window.renderPokedexGrid();
+                        if (window.renderPokedexGrid) window.renderPokedexGrid();
                     }, 200);
-                    
+
                     isLoadingCloud = false;
                     return { success: true };
                 } else {
@@ -176,7 +212,7 @@ window.SupabaseManager = {
                     window.location.reload();
                 }
             }
-            
+
             isLoadingCloud = false;
             return { success: false, message: 'Local kept' };
 
@@ -187,38 +223,68 @@ window.SupabaseManager = {
         }
     },
 
-    onLoginSuccess: function(forceLoad = false, autoLoad = false) {
+    onLoginSuccess: function (forceLoad = false, autoLoad = false) {
         if (window.updateAuthUI) window.updateAuthUI(true);
         setTimeout(() => this.load(forceLoad), 1000);
     },
 
-    signIn: async function(email, password) {
+    signIn: async function (email, password) {
         if (!supabase) return { error: { message: 'No SDK' } };
-        return await supabase.auth.signInWithPassword({ email, password });
+
+        try {
+            console.log('🔑 Attempting sign in...');
+            const result = await supabase.auth.signInWithPassword({ email, password });
+
+            if (result.error) {
+                console.error('❌ Sign in error:', result.error);
+            } else {
+                console.log('✅ Sign in successful');
+            }
+
+            return result;
+        } catch (err) {
+            console.error('❌ Sign in exception:', err);
+            return { error: { message: err.message || 'Connection failed' } };
+        }
     },
 
-    signUp: async function(email, password) {
+    signUp: async function (email, password) {
         if (!supabase) return { error: { message: 'No SDK' } };
-        return await supabase.auth.signUp({ email, password });
+
+        try {
+            console.log('📝 Attempting sign up...');
+            const result = await supabase.auth.signUp({ email, password });
+
+            if (result.error) {
+                console.error('❌ Sign up error:', result.error);
+            } else {
+                console.log('✅ Sign up successful');
+            }
+
+            return result;
+        } catch (err) {
+            console.error('❌ Sign up exception:', err);
+            return { error: { message: err.message || 'Registration failed' } };
+        }
     },
 
-    signOut: async function() {
+    signOut: async function () {
         if (supabase) await supabase.auth.signOut();
         window.location.reload();
     },
 
-    getCurrentUserEmail: function() {
+    getCurrentUserEmail: function () {
         return currentUser ? currentUser.email : null;
     },
 
-    isLoggedIn: function() {
+    isLoggedIn: function () {
         return currentUser !== null;
     },
 
-    getUser: function() {
+    getUser: function () {
         return currentUser;
     },
-    
+
     get isLoadingCloud() {
         return isLoadingCloud;
     }

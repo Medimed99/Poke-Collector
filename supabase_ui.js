@@ -10,7 +10,7 @@ function renderAuthModal() {
     const modal = document.createElement('div');
     modal.className = 'modal active auth-modal';
     modal.style.cssText = 'display: flex !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 20000; align-items: center; justify-content: center;';
-    
+
     modal.innerHTML = `
         <div style="background: linear-gradient(135deg, rgba(26, 26, 46, 0.98), rgba(22, 33, 62, 0.98)); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; border: 2px solid rgba(255, 215, 0, 0.3); text-align: center; box-shadow: 0 8px 40px rgba(125, 95, 255, 0.5); animation: elegantFadeIn 0.5s ease-out;">
             <h2 style="color: #ffd700; margin-bottom: 20px; font-size: 1.8em; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5); font-weight: 700;">💾 Archivage des Données</h2>
@@ -51,22 +51,22 @@ function renderAuthModal() {
             </button>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
+
     // Focus sur le premier input
     setTimeout(() => {
         const emailInput = document.getElementById('auth-email');
         if (emailInput) emailInput.focus();
     }, 100);
-    
+
     // Fermer en cliquant en dehors
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             modal.remove();
         }
     });
-    
+
     // Entrée pour valider
     const passwordInput = document.getElementById('auth-password');
     if (passwordInput) {
@@ -78,11 +78,11 @@ function renderAuthModal() {
     }
 }
 
-window.tryLogin = async function() {
+window.tryLogin = async function () {
     const email = document.getElementById('auth-email')?.value;
     const pass = document.getElementById('auth-password')?.value;
     const statusDiv = document.getElementById('auth-status');
-    
+
     if (!email || !pass) {
         if (statusDiv) {
             statusDiv.textContent = 'Veuillez remplir tous les champs';
@@ -90,36 +90,54 @@ window.tryLogin = async function() {
         }
         return;
     }
-    
+
     if (statusDiv) {
         statusDiv.textContent = 'Connexion en cours...';
         statusDiv.style.color = '#3b82f6';
     }
-    
-    const { data, error } = await window.SupabaseManager.signIn(email, pass);
-    
-    if (error) {
+
+    try {
+        // Créer une promesse avec timeout de 15 secondes
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout: La connexion prend trop de temps. Supabase est peut-être en cours de redémarrage. Veuillez réessayer dans quelques minutes.')), 15000)
+        );
+
+        const loginPromise = window.SupabaseManager.signIn(email, pass);
+
+        const { data, error } = await Promise.race([loginPromise, timeoutPromise]);
+
+        if (error) {
+            if (statusDiv) {
+                statusDiv.textContent = 'Erreur: ' + error.message;
+                statusDiv.style.color = '#ef4444';
+            }
+            if (window.showToast) {
+                window.showToast('Erreur de connexion: ' + error.message, 'error');
+            }
+        } else {
+            const modal = document.querySelector('.auth-modal');
+            if (modal) modal.remove();
+            if (window.showToast) {
+                window.showToast('✅ Connecté avec succès !', 'success');
+            }
+        }
+    } catch (error) {
+        // Gérer les erreurs de timeout ou autres exceptions
         if (statusDiv) {
-            statusDiv.textContent = 'Erreur: ' + error.message;
+            statusDiv.textContent = error.message || 'Erreur inconnue';
             statusDiv.style.color = '#ef4444';
         }
         if (window.showToast) {
-            window.showToast('Erreur de connexion: ' + error.message, 'error');
-        }
-    } else {
-        const modal = document.querySelector('.auth-modal');
-        if (modal) modal.remove();
-        if (window.showToast) {
-            window.showToast('✅ Connecté avec succès !', 'success');
+            window.showToast('❌ ' + (error.message || 'Erreur de connexion'), 'error');
         }
     }
 };
 
-window.tryRegister = async function() {
+window.tryRegister = async function () {
     const email = document.getElementById('auth-email')?.value;
     const pass = document.getElementById('auth-password')?.value;
     const statusDiv = document.getElementById('auth-status');
-    
+
     if (!email || !pass) {
         if (statusDiv) {
             statusDiv.textContent = 'Veuillez remplir tous les champs';
@@ -127,7 +145,7 @@ window.tryRegister = async function() {
         }
         return;
     }
-    
+
     if (pass.length < 6) {
         if (statusDiv) {
             statusDiv.textContent = 'Le mot de passe doit contenir au moins 6 caractères';
@@ -135,14 +153,14 @@ window.tryRegister = async function() {
         }
         return;
     }
-    
+
     if (statusDiv) {
         statusDiv.textContent = 'Création du compte...';
         statusDiv.style.color = '#3b82f6';
     }
-    
+
     const { data, error } = await window.SupabaseManager.signUp(email, pass);
-    
+
     if (error) {
         if (statusDiv) {
             statusDiv.textContent = 'Erreur: ' + error.message;
@@ -167,15 +185,15 @@ window.tryRegister = async function() {
     }
 };
 
-window.updateAuthUI = function(isLoggedIn) {
+window.updateAuthUI = function (isLoggedIn) {
     // Attendre que le DOM soit prêt
     const tryUpdate = () => {
         // Chercher dans la Top Bar
         let topBarContainer = document.querySelector('.top-bar-right');
-        
+
         // Chercher aussi dans la page Profil
         let profileContainer = document.getElementById('profile-cloud-section');
-        
+
         if (!topBarContainer) {
             // Créer un conteneur dans la Top Bar si elle existe
             const topBar = document.querySelector('.top-bar');
@@ -186,13 +204,13 @@ window.updateAuthUI = function(isLoggedIn) {
                 topBar.appendChild(topBarContainer);
             }
         }
-        
+
         if (!topBarContainer && !profileContainer) {
             // Réessayer après un court délai si le DOM n'est pas encore prêt
             setTimeout(tryUpdate, 100);
             return;
         }
-        
+
         // Mettre à jour les deux emplacements si disponibles
         if (topBarContainer) {
             updateAuthButton(topBarContainer, isLoggedIn, 'topbar');
@@ -201,7 +219,7 @@ window.updateAuthUI = function(isLoggedIn) {
             updateAuthButton(profileContainer, isLoggedIn, 'profile');
         }
     };
-    
+
     tryUpdate();
 };
 
@@ -219,7 +237,7 @@ function updateAuthButton(container, isLoggedIn, location = 'topbar') {
         }
         container.appendChild(btn);
     }
-    
+
     if (isLoggedIn) {
         // Si on est connecté, ne pas afficher le bouton dans la top bar (seulement dans le profil)
         if (location === 'topbar') {
@@ -273,7 +291,7 @@ function updateAuthButton(container, isLoggedIn, location = 'topbar') {
                     }
                 }
             };
-            
+
             // Afficher l'email de l'utilisateur
             let emailDisplay = document.getElementById('cloud-email-display');
             if (window.SupabaseManager && window.SupabaseManager.getCurrentUserEmail) {
@@ -292,7 +310,7 @@ function updateAuthButton(container, isLoggedIn, location = 'topbar') {
                     }
                 }
             }
-            
+
             // Ajouter des boutons d'action dans le profil
             const actionsContainer = document.getElementById('profile-cloud-actions');
             if (actionsContainer && !document.getElementById('cloud-load-btn-profile')) {
@@ -321,7 +339,7 @@ function updateAuthButton(container, isLoggedIn, location = 'topbar') {
                     }
                 };
                 actionsContainer.appendChild(loadBtn);
-                
+
                 const saveBtn = document.createElement('button');
                 saveBtn.id = 'cloud-save-btn-profile';
                 saveBtn.className = 'btn btn--outline';
@@ -356,7 +374,7 @@ function updateAuthButton(container, isLoggedIn, location = 'topbar') {
         btn.style.border = 'none';
         btn.style.color = 'white';
         btn.onclick = renderAuthModal;
-        
+
         // Supprimer le bouton de sauvegarde manuelle
         const saveBtn = document.getElementById('cloud-save-now-btn');
         if (saveBtn) saveBtn.remove();

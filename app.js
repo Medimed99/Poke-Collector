@@ -9760,14 +9760,16 @@ function updateSystemStabilityDisplay() {
 
     if (!stabilityDisplay || !stabilityBar || !stabilityText) return;
 
-    // Afficher uniquement pour les niveaux 1-2
-    if (gameState.level <= 2) {
+    // Afficher uniquement pour les niveaux 1-2 ET si pas encore complété
+    const targetCaptures = 5;
+    const currentCaptures = gameState.totalCaught || 0;
+    const isCompleted = currentCaptures >= targetCaptures;
+
+    if (gameState.level <= 2 && !isCompleted) {
         stabilityDisplay.style.display = 'flex';
 
         // Calculer la stabilité basée sur le nombre de captures
         // Objectif : 5 captures pour débloquer la Pêche (niveau 2)
-        const targetCaptures = 5;
-        const currentCaptures = gameState.totalCaught || 0;
         const stabilityPercent = Math.min((currentCaptures / targetCaptures) * 100, 100);
         const previousCaptures = gameState.previousStabilityCaptures || 0;
 
@@ -9813,12 +9815,19 @@ function updateSystemStabilityDisplay() {
             if (typeof updateSystemVisualState === 'function') {
                 updateSystemVisualState();
             }
+
+            // Masquer la barre après 3 secondes pour donner le temps de voir "100% - Système stable"
+            setTimeout(() => {
+                if (stabilityDisplay) {
+                    stabilityDisplay.style.display = 'none';
+                }
+            }, 3000);
         }
 
         // Sauvegarder le nombre actuel pour la prochaine vérification
         gameState.previousStabilityCaptures = currentCaptures;
     } else {
-        // Masquer pour les niveaux supérieurs
+        // Masquer pour les niveaux supérieurs OU si déjà complété
         stabilityDisplay.style.display = 'none';
     }
 }
@@ -10154,7 +10163,7 @@ function handleCaptureSuccess(pokemon, ballType, skillBonus) {
             pokeball.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png`;
             pokeball.style.cssText = `
                 position: absolute;
-                top: 50%;
+                top: 40%;
                 left: 50%;
                 transform: translate(-50%, -50%);
                 width: 80px;
@@ -11215,7 +11224,7 @@ function showLootboxResult(rewards, boxType, bgColor) {
 }
 window.hatchMysteryEgg = function () { if (!gameState.inventory.eggs) gameState.inventory.eggs = []; const readyEgg = gameState.inventory.eggs.find(e => e.id === 'mystery_egg' && e.state === 'ready'); if (!readyEgg) { showToast('Aucun œuf mystère prêt! (50 captures nécessaires)', 'error'); return; } const eggModal = document.createElement('div'); eggModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 99999;'; eggModal.innerHTML = `<div style="text-align: center;"><div style="font-size: 10em; animation: eggShake 0.5s infinite;">🥚</div><div style="color: white; font-size: 1.5em; margin-top: 20px;">L'œuf éclot...</div></div>`; document.body.appendChild(eggModal); setTimeout(() => { eggModal.remove(); const johtoPool = []; for (let id = 152; id <= 242; id++)johtoPool.push(id); const pokemonId = johtoPool[Math.floor(Math.random() * johtoPool.length)]; const shinyRate = (1 / 256) + (Math.floor(gameState.streak / 5) * 0.01); const isShiny = Math.random() < shinyRate; const eggIndex = gameState.inventory.eggs.findIndex(e => e.id === 'mystery_egg' && e.state === 'ready'); if (eggIndex >= 0) gameState.inventory.eggs.splice(eggIndex, 1); addToCollection(pokemonId, isShiny); const revealModal = document.createElement('div'); revealModal.className = 'modal active'; revealModal.style.cssText = 'display: flex !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center;'; revealModal.innerHTML = `<div style="background: linear-gradient(135deg, #FFD700, #FFA500); padding: 40px; border-radius: 20px; max-width: 400px; text-align: center; animation: bounceIn 0.5s ease;"><div style="font-size: 4em; margin-bottom: 20px;">🥚✨</div><h2 style="color: white; margin-bottom: 20px;">Œuf Éclos !</h2><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${isShiny ? 'shiny/' : ''}${pokemonId}.png" style="width: 200px; height: 200px; image-rendering: pixelated; ${isShiny ? 'filter: drop-shadow(0 0 30px #FFD700);' : ''}"><div style="font-size: 1.5em; font-weight: bold; color: ${isShiny ? '#FFD700' : 'white'}; margin-top: 15px;">${isShiny ? '✨ ' : ''}${FRENCH_NAMES[pokemonId] || `Pokémon de Johto`}${isShiny ? ' ✨' : ''}</div><div style="color: white; margin-top: 10px;">#${pokemonId}</div><button onclick="this.closest('.modal').remove(); renderInventory();" class="btn btn--primary" style="margin-top: 20px; padding: 12px 30px;">Fermer</button></div>`; document.body.appendChild(revealModal); saveGame(); updateUI(); }, 2500); };
 
-window.renderInventory = function () { const container = document.getElementById('inventory-grid'); if (!container) return; const showUnowned = document.getElementById('show-unowned')?.checked || false; container.innerHTML = ''; const eggsCount = (gameState.inventory.eggs || []).length; if (eggsCount > 0) { const eggsCard = document.createElement('div'); eggsCard.style.cssText = 'background: var(--dark-elevated); border: 2px solid #7d5fff; border-radius: 12px; padding: 15px; text-align: center; transition: all 0.3s; grid-column: 1 / -1; margin-bottom: 15px;'; const readyCount = (gameState.inventory.eggs || []).filter(e => e.state === 'ready').length; eggsCard.innerHTML = `<div style="font-size: 2em; margin-bottom: 10px;">🥚</div><div style="font-weight: bold; color: white; margin-bottom: 5px; font-size: 1.1em;">Œufs (${eggsCount})</div><div style="font-size: 0.85em; color: var(--text-secondary); margin-bottom: 10px;">${readyCount > 0 ? `✨ ${readyCount} prêt${readyCount > 1 ? 's' : ''} à éclore !` : 'Gérez vos œufs et incubez-les'}</div><button onclick="openEggsModal()" class="btn btn--primary" style="margin-top: 10px; padding: 8px 16px; width: 100%; background: linear-gradient(135deg, #7d5fff, #20d5d2);">Gérer les Œufs</button>`; container.appendChild(eggsCard); } if (gameState.catchbot && gameState.catchbot.active && gameState.catchbot.storage && gameState.catchbot.storage.length > 0) { const catchbotCard = document.createElement('div'); catchbotCard.style.cssText = 'background: var(--dark-elevated); border: 2px solid #20d5d2; border-radius: 12px; padding: 15px; text-align: center; transition: all 0.3s; grid-column: 1 / -1; margin-bottom: 15px;'; catchbotCard.innerHTML = `<div style="font-size: 2em; margin-bottom: 10px;">🤖</div><div style="font-weight: bold; color: white; margin-bottom: 5px; font-size: 1.1em;">Catchbot</div><div style="font-size: 0.85em; color: var(--text-secondary); margin-bottom: 10px;">${gameState.catchbot.storage.length} capture${gameState.catchbot.storage.length > 1 ? 's' : ''} disponible${gameState.catchbot.storage.length > 1 ? 's' : ''}</div><button onclick="claimCatchbot()" class="btn btn--primary" style="margin-top: 10px; padding: 8px 16px; width: 100%; background: linear-gradient(135deg, #20d5d2, #7d5fff);">Récupérer</button>`; container.appendChild(catchbotCard); } for (const [itemId, item] of Object.entries(ALL_ITEMS)) { const qty = gameState.inventory[itemId] || 0; if (!showUnowned && qty === 0) continue; const card = document.createElement('div'); card.style.cssText = `background: ${qty > 0 ? 'var(--dark-elevated)' : 'var(--dark-surface)'}; border: 2px solid ${qty > 0 ? '#667eea' : '#444'}; border-radius: 12px; padding: 15px; text-align: center; transition: all 0.3s; opacity: ${qty > 0 ? 1 : 0.5};`; const isLootbox = ['lootbox', 'rarebox', 'suprarebox', 'ultrabox'].includes(itemId); const isMysteryEgg = itemId === 'mystery_egg'; const isBoostItem = ['incensefleur', 'marin_lure', 'exp_charm', 'lucky_charm', 'legendary_radar', 'charm_collection'].includes(itemId); let openButton = ''; if (isLootbox && qty > 0) { openButton = `<button onclick="openLootbox('${itemId}')" class="btn btn--primary" style="margin-top: 10px; padding: 8px 16px; width: 100%;">Ouvrir</button>`; } else if (isMysteryEgg && qty > 0 && (gameState.mysteryEggProgress || 0) >= 50) { openButton = `<button onclick="hatchMysteryEgg()" class="btn btn--primary" style="margin-top: 10px; padding: 8px 16px; width: 100%;">Éclore</button>`; } else if (isBoostItem && qty > 0) { openButton = `<button class="activate-boost-btn btn btn--primary" data-item-id="${itemId}" style="margin-top: 10px; padding: 8px 16px; width: 100%;">Activer</button>`; } card.innerHTML = `<div style="font-size: 2em; margin-bottom: 10px; display: flex; align-items: center; justify-content: center;">${getItemIconDisplay(itemId, '32px')}</div><div style="font-weight: bold; color: white; margin-bottom: 5px; font-size: 0.9em;">${item.name}</div><div style="font-size: 0.85em; color: var(--text-secondary); margin-bottom: 10px;">${item.desc}</div><div style="font-size: 1.3em; font-weight: bold; color: #667eea;">${qty}</div>${isMysteryEgg && qty > 0 ? `<div style="font-size: 0.85em; color: #FFD700; margin-top: 5px;">${gameState.mysteryEggProgress || 0}/50 captures</div>` : ''}${openButton}`; container.appendChild(card); } container.querySelectorAll('.activate-boost-btn').forEach(btn => { btn.addEventListener('click', function () { const itemId = this.getAttribute('data-item-id'); if (window.activateBoostItem) { window.activateBoostItem(itemId); } }); }); };
+window.renderInventory = function () { const container = document.getElementById('inventory-grid'); if (!container) return; const showUnowned = document.getElementById('show-unowned')?.checked || false; container.innerHTML = ''; const eggsCount = (gameState.inventory.eggs || []).length; if (eggsCount > 0) { const eggsCard = document.createElement('div'); eggsCard.style.cssText = 'background: var(--dark-elevated); border: 2px solid #7d5fff; border-radius: 12px; padding: 15px; text-align: center; transition: all 0.3s; grid-column: 1 / -1; margin-bottom: 15px;'; const readyCount = (gameState.inventory.eggs || []).filter(e => e.state === 'ready').length; eggsCard.innerHTML = `<div style="font-size: 2em; margin-bottom: 10px;">🥚</div><div style="font-weight: bold; color: white; margin-bottom: 5px; font-size: 1.1em;">Œufs (${eggsCount})</div><div style="font-size: 0.85em; color: var(--text-secondary); margin-bottom: 10px;">${readyCount > 0 ? `✨ ${readyCount} prêt${readyCount > 1 ? 's' : ''} à éclore !` : 'Gérez vos œufs et incubez-les'}</div><button onclick="openEggsModal()" class="btn btn--primary" style="margin-top: 10px; padding: 8px 16px; width: 100%; background: linear-gradient(135deg, #7d5fff, #20d5d2);">Gérer les Œufs</button>`; container.appendChild(eggsCard); } if (gameState.catchbot && gameState.catchbot.active && gameState.catchbot.storage && gameState.catchbot.storage.length > 0) { const catchbotCard = document.createElement('div'); catchbotCard.style.cssText = 'background: var(--dark-elevated); border: 2px solid #20d5d2; border-radius: 12px; padding: 15px; text-align: center; transition: all 0.3s; grid-column: 1 / -1; margin-bottom: 15px;'; catchbotCard.innerHTML = `<div style="font-size: 2em; margin-bottom: 10px;">🤖</div><div style="font-weight: bold; color: white; margin-bottom: 5px; font-size: 1.1em;">Catchbot</div><div style="font-size: 0.85em; color: var(--text-secondary); margin-bottom: 10px;">${gameState.catchbot.storage.length} capture${gameState.catchbot.storage.length > 1 ? 's' : ''} disponible${gameState.catchbot.storage.length > 1 ? 's' : ''}</div><button onclick="claimCatchbot()" class="btn btn--primary" style="margin-top: 10px; padding: 8px 16px; width: 100%; background: linear-gradient(135deg, #20d5d2, #7d5fff);">Récupérer</button>`; container.appendChild(catchbotCard); } for (const [itemId, item] of Object.entries(ALL_ITEMS)) { const qty = gameState.inventory[itemId] || 0; if (!showUnowned && qty === 0) continue; const card = document.createElement('div'); card.style.cssText = `background: ${qty > 0 ? 'var(--dark-elevated)' : 'var(--dark-surface)'}; border: 2px solid ${qty > 0 ? '#667eea' : '#444'}; border-radius: 12px; padding: 15px; text-align: center; transition: all 0.3s; opacity: ${qty > 0 ? 1 : 0.5};`; const isLootbox = ['lootbox', 'rarebox', 'suprarebox', 'ultrabox'].includes(itemId); const isMysteryEgg = itemId === 'mystery_egg'; const isBoostItem = ['incensefleur', 'marin_lure', 'exp_charm', 'lucky_charm', 'legendary_radar', 'charm_collection'].includes(itemId); let openButton = ''; if (isLootbox && qty > 0) { openButton = `<button onclick="openLootbox('${itemId}')" class="btn btn--primary" style="margin-top: 10px; padding: 8px 16px; width: 100%;">Ouvrir</button>`; } else if (isMysteryEgg && qty > 0 && (gameState.mysteryEggProgress || 0) >= 50) { openButton = `<button onclick="hatchMysteryEgg()" class="btn btn--primary" style="margin-top: 10px; padding: 8px 16px; width: 100%;">Éclore</button>`; } else if (isBoostItem && qty > 0) { openButton = `<button class="activate-boost-btn btn btn--primary" data-item-id="${itemId}" style="margin-top: 10px; padding: 8px 16px; width: 100%;">Activer</button>`; } card.innerHTML = `<div style="font-size: 2em; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; min-height: 40px;">${getItemIconDisplay(itemId, '32px')}</div><div style="font-weight: bold; color: white; margin-bottom: 5px; font-size: 0.9em;">${item.name}</div><div style="font-size: 0.85em; color: var(--text-secondary); margin-bottom: 10px;">${item.desc}</div><div style="font-size: 1.3em; font-weight: bold; color: #667eea;">${qty}</div>${isMysteryEgg && qty > 0 ? `<div style="font-size: 0.85em; color: #FFD700; margin-top: 5px;">${gameState.mysteryEggProgress || 0}/50 captures</div>` : ''}${openButton}`; container.appendChild(card); } container.querySelectorAll('.activate-boost-btn').forEach(btn => { btn.addEventListener('click', function () { const itemId = this.getAttribute('data-item-id'); if (window.activateBoostItem) { window.activateBoostItem(itemId); } }); }); };
 
 window.switchPage = function (pageName) {
     // Protection : Vérifier si les quêtes sont débloquées
@@ -23557,4 +23566,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 1500);
     }
+
+    // ==========================================
+    // PWA INTRO INITIALIZATION FIX
+    // ==========================================
+    // Vérifier si l'intro doit être affichée (nouvelle partie ou PWA)
+    setTimeout(() => {
+        const savedData = localStorage.getItem('poke_gamedata');
+        const gameBoyScreen = document.getElementById('game-boy-screen');
+
+        // Si pas de sauvegarde ou si introSeen n'est pas dans gameState
+        if (gameBoyScreen && (!savedData || !gameState.introSeen)) {
+            console.log('🎮 PWA: Affichage de l\'écran d\'intro');
+            gameBoyScreen.style.display = 'flex';
+        } else if (gameBoyScreen) {
+            // Sinon s'assurer que l'intro est cachée
+            gameBoyScreen.style.display = 'none';
+        }
+    }, 500);
 });
