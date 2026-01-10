@@ -796,8 +796,209 @@ body { margin: 0; padding: 0; }
 
 body {
     font-family: var(--font-family);
-    background: var(--dark-bg);
-    color: var(--text-primary);
+
+/* =========================================
+   DAILY LOGIN REWARDS
+   ========================================= */
+#daily-login-modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.daily-login-content {
+    background: linear-gradient(145deg, #1a1f2c, #13151b);
+    border: 2px solid var(--color-primary);
+    border-radius: 20px;
+    padding: 30px;
+    width: 90%;
+    max-width: 800px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(33, 128, 141, 0.3);
+    position: relative;
+}
+
+.daily-login-header h2 {
+    color: var(--color-primary);
+    font-family: var(--font-family-tech);
+    margin-bottom: 10px;
+    font-size: 2em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.daily-login-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+}
+
+#daily-login-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.daily-reward-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    min-width: 80px;
+}
+
+.daily-reward-card.claimed {
+    background: rgba(33, 128, 141, 0.2);
+    border-color: var(--color-primary);
+    opacity: 0.7;
+}
+
+.daily-reward-card.today {
+    background: rgba(33, 128, 141, 0.4);
+    border-color: #00ff9d;
+    box-shadow: 0 0 20px rgba(0, 255, 157, 0.4);
+    transform: scale(1.1);
+    z-index: 10;
+    cursor: pointer;
+    animation: pulseGlow 2s infinite;
+}
+
+.daily-reward-card.today:hover {
+    transform: scale(1.15);
+}
+
+.daily-reward-card.locked {
+    opacity: 0.5;
+    filter: grayscale(1);
+}
+
+.day-number {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    font-family: var(--font-family-mono);
+}
+
+.reward-icon {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+.reward-label {
+    font-size: 0.7em;
+    font-weight: bold;
+    color: var(--color-text);
+}
+
+.check-mark {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: #00ff9d;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+#daily-claim-btn {
+    background: linear-gradient(90deg, var(--color-primary), #00ff9d);
+    color: #000;
+    font-weight: bold;
+    font-size: 1.2em;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0, 255, 157, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-family: var(--font-family-tech);
+}
+
+#daily-claim-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 255, 157, 0.5);
+}
+
+#daily-claim-btn:active {
+    transform: translateY(-1px);
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 10px rgba(0, 255, 157, 0.3); border-color: #00ff9d; }
+    50% { box-shadow: 0 0 25px rgba(0, 255, 157, 0.6); border-color: #ffffff; }
+    100% { box-shadow: 0 0 10px rgba(0, 255, 157, 0.3); border-color: #00ff9d; }
+}
+
+@media (max-width: 768px) {
+    #daily-login-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    .daily-reward-card:nth-child(n+5) {
+        grid-column: span 1; /* Adjust based on preference */
+    }
+    /* Make the 7th item span full width or center it */
+    .daily-reward-card:last-child {
+        grid-column: 1 / -1;
+    }
+}
+
+/* =========================================
+   PORYGON INTERACTION
+   ========================================= */
+.porygon-avatar-container {
+    position: relative;
+    cursor: pointer;
+    width: fit-content;
+    margin: 0 auto;
+    transition: transform 0.1s;
+}
+
+.porygon-avatar-container:active {
+    transform: scale(0.95);
+}
+
+.porygon-heart {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ff0055;
+    font-size: 2em;
+    animation: floatUp 1s ease-out forwards;
+    pointer-events: none;
+    z-index: 100;
+    text-shadow: 0 0 5px rgba(255, 0, 85, 0.5);
+}
+
+@keyframes floatUp {
+    0% { opacity: 1; transform: translate(-50%, 0) scale(0.5); }
+    100% { opacity: 0; transform: translate(-50%, -50px) scale(1.5); }
+}
+
+.porygon-click-feedback {
+    animation: porygonWiggle 0.4s ease-in-out;
+}
+
+@keyframes porygonWiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+}
     min-height: 100vh;
     padding-bottom: 70px;
     margin: 0;
