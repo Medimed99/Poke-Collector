@@ -61,7 +61,11 @@ const QUESTS_DATA = {
         { id: 'special_complete_kanto', name: 'Compléter Kanto', desc: 'Complétez le Pokédex Kanto (151/151)', target: 151, reward: { coins: 25000, xp: 1500, suprarebox: 1, badge: 'Kanto Collector' }, icon: '👑', oneTime: true },
         { id: 'special_10_shinies', name: 'Shiny Hunter', desc: 'Capturez 10 Pokémon Shiny', target: 10, reward: { coins: 15000, xp: 2000, lucky_charm: 1, rarebox: 1 }, icon: '✨', oneTime: true },
         { id: 'special_3_legendaries', name: 'Chasseur d\'Étoiles', desc: 'Capturer 3 Légendaires', target: 3, reward: { coins: 10000, xp: 1000, legendary_radar: 1 }, icon: 'shard_common', oneTime: true },
-        { id: 'special_rogue_10', name: 'Maître Explorateur', desc: 'Complétez 10 Full Clear', target: 10, reward: { coins: 10000, xp: 1000, shards: 50 }, icon: '🏆', oneTime: true }
+        { id: 'special_rogue_10', name: 'Maître Explorateur', desc: 'Complétez 10 Full Clear', target: 10, reward: { coins: 10000, xp: 1000, shards: 50 }, icon: '🏆', oneTime: true },
+        // NOUVEAU : Missions Narratives Porygon
+        { id: 'porygon_mission_1', name: 'Analyse de Données', desc: 'Capturez 10 Pokémon (Niveau 6+)', target: 10, reward: { coins: 5000, xp: 1000, greatball: 5 }, icon: '📉', oneTime: true },
+        { id: 'porygon_mission_2', name: 'Renforcement Signal', desc: 'Atteignez un Streak de 5 (Niveau 10+)', target: 5, reward: { coins: 0, xp: 2000, rarebox: 1 }, icon: '📶', oneTime: true, trackType: 'streak' },
+        { id: 'porygon_mission_3', name: 'Brèche Pare-feu', desc: 'Gagnez 5000 Coins (Niveau 13+)', target: 5000, reward: { coins: 2000, xp: 3000, upgrade_chip: 1 }, icon: '🔓', oneTime: true, trackType: 'coins' }
     ],
     permanent: [
         { id: 'perm_hundred_captures', name: 'Centuple Capture', desc: 'Capturer 100 Pokémon', target: 100, reward: { coins: 5000, xp: 500, rarebox: 1 }, icon: '💯' },
@@ -886,23 +890,25 @@ const ENTROPY_WHISPERS = {
 // ==========================================
 
 const LEVEL_UP_NARRATIVE = {
-    2: 'early_progress_2',
-    3: 'early_progress_3',
-    4: 'early_progress_4',
-    6: 'lost_files_start', // New custom event
+    2: 'unlock_fishing_module', // Fishing unlocks at Level 2
+    3: 'unlock_buddy_system', // CORRECTION: Mapped to correct dialogue
+    4: 'data_stabilization_progress', // New dialogue without fishing mention
+    5: 'unlock_research_core', // Research Lab unlocks at Level 5
+    6: 'lore_fragment_1', // NOUVEAU: Lore Fragment 1
     8: 'memory_shards_intro', // New custom event
+    10: 'network_expansion', // NOUVEAU: Network Expansion
     13: 'firewall_event_intro', // New custom event
     20: 'integrity_critical',
     25: 'mid_game_milestone'
 };
 
 const NARRATIVE_EVENTS = {
-    'lost_files_start': {
+    'lore_fragment_1': {
         mood: 'glitch',
         lines: [
             "ERREUR 404 : Fichier 'Lore_Kanto.dat' corrompu.",
             "Archiviste, j'ai besoin de vous. Des segments de l'histoire sont cryptés.",
-            "Continuez à capturer pour décrypter les données."
+            "MISSION : [Analyse de Données] générée. Capturez 10 Pokémon pour décrypter cette zone."
         ]
     },
     'memory_shards_intro': {
@@ -913,12 +919,20 @@ const NARRATIVE_EVENTS = {
             "Ils apparaissent parfois lors des captures. Collectez-les."
         ]
     },
+    'network_expansion': {
+        mood: 'proud',
+        lines: [
+            "Excellent. La couverture réseau s'étend.",
+            "Nous captons maintenant des signaux provenant de couches plus profondes.",
+            "MISSION : [Renforcement Signal] requise. Maintenez un Streak de 5 pour stabiliser la connexion."
+        ]
+    },
     'firewall_event_intro': {
         mood: 'panic',
         lines: [
             "ALERTE ! FIREWALL DÉTECTÉ !",
-            "Un mur de données bloque la progression.",
-            "Préparez vos meilleurs Pokémon pour le piratage."
+            "Un mur de données bloque la progression vers les Ancient Data.",
+            "MISSION : [Brèche Pare-feu]. Accumulez 5000 Coins pour financer l'attaque par brute-force."
         ]
     }
 };
@@ -1124,7 +1138,8 @@ const PORYGON_DIALOGUES = {
             'SYSTEM FAILURE... CRITICAL ERROR... KANTO_DB CORRUPTED...',
             '... Il y a quelqu\'un ? Archiviste ? C\'est vous ?',
             'Tout a disparu... Le monde... effacé. Je ne suis que des fragments de code brisés.',
-            'Aidez-moi. Capturez le premier signal. N\'importe quoi. Vite.'
+            'Les données se désintègrent... MissingNo a tout corrompu...',
+            'Aidez-moi à reconstruire. Capturez le premier signal. N\'importe quoi. Vite !'
         ],
         action: () => {
             // Force le spawn des 3 starters
@@ -1229,12 +1244,13 @@ const PORYGON_DIALOGUES = {
         visual: 'progress'
     },
 
-    'early_progress_4': {
-        id: 'early_progress_4',
+    'data_stabilization_progress': {
+        id: 'data_stabilization_progress',
         mood: 'NEUTRAL',
         lines: [
-            'Intégrité système à 4%. Presque là...',
-            'Capturez encore 1 Pokémon pour débloquer le module de Pêche !'
+            'Intégrité système à 4%. La stabilisation progresse...',
+            'Les fragments de données s\'assemblent. Le code se répare lentement.',
+            'Continuez vos captures, Archiviste. Chaque signal compte.'
         ],
         visual: 'progress'
     },
@@ -1255,8 +1271,10 @@ const PORYGON_DIALOGUES = {
         id: 'unlock_fishing_module',
         mood: 'NEUTRAL',
         lines: [
-            'Tiens ? Je capte des signaux sous la surface liquide.',
-            'J\'ai compilé un module [CANNE_A_PECHE.exe]. Essayez d\'extraire ces données humides.'
+            'Signal détecté ! Des données immergées dans les secteurs liquides...',
+            'Compilation en cours... [CANNE_A_PECHE.exe] prête.',
+            'Module de Pêche débloqué ! Vous pouvez maintenant extraire les Pokémon aquatiques.',
+            'Accédez au module via le bouton [PÊCHE] dans le menu principal.'
         ],
         visual: 'unlock'
     },
@@ -1342,7 +1360,7 @@ const PORYGON_DIALOGUES = {
             'Système stabilisé ! Les 5 fragments ont restauré ma mémoire de base.',
             'Je peux maintenant fonctionner normalement. Le glitch a disparu.',
             'Continue à capturer des Pokémon pour gagner de l\'XP et monter de niveau.',
-            'Au niveau 2, tu débloqueras la Pêche !'
+            'Chaque niveau débloque de nouvelles fonctionnalités !'
         ],
         visual: 'progress'
     },
@@ -1398,6 +1416,18 @@ const PORYGON_DIALOGUES = {
         ],
         visual: 'reboot'
     },
+
+    // AMBIENT WHISPERS (Non-blocking)
+    'data_corruption_warning': [
+        "⚠️ Secteurs instables détectés...",
+        "Des données fuient par la brèche...",
+        "MissingNo observe..."
+    ],
+    'processing_capacity_increased': [
+        "CPU load: 45%. Optimisation en cours.",
+        "Plus de données = Plus de puissance.",
+        "Le réseau s'étend..."
+    ],
 
     'integrity_critical': {
         id: 'integrity_critical',
@@ -2592,6 +2622,12 @@ function checkSystemIntegrity() {
     }
     if (kantoCaught === 50 && !gameState.system.narrativeFlags.includes('system_stabilizing')) {
         triggerNarrative('system_stabilizing');
+    }
+    if (kantoCaught === 60) {
+        triggerAmbientNarrative('data_corruption_warning');
+    }
+    if (kantoCaught === 80) {
+        triggerAmbientNarrative('processing_capacity_increased');
     }
     if (kantoCaught === 100 && !gameState.system.narrativeFlags.includes('memory_returning')) {
         triggerNarrative('memory_returning');
@@ -7456,7 +7492,7 @@ function getItemIcon(itemId) {
 function getItemIconDisplay(itemId, size = '1em') {
     const icon = getItemIcon(itemId);
     if (icon.startsWith('http')) {
-        return `<img src="${icon}" style="width: ${size}; height: ${size}; image-rendering: pixelated; vertical-align: middle; display: inline-block; object-fit: contain; flex-shrink: 0;" alt="${ALL_ITEMS[itemId]?.name || itemId}">`;
+        return `<img src="${icon}" style="width: ${size}; height: ${size}; image-rendering: pixelated; vertical-align: middle; display: inline-block; object-fit: contain; object-position: center;" alt="${ALL_ITEMS[itemId]?.name || itemId}">`;
     }
     return icon;
 }

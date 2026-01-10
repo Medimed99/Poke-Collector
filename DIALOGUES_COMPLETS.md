@@ -139,17 +139,16 @@
 
 ### 📈 Progression Précoce
 
-**`early_progress_2`** (Mood: NEUTRAL, Visual: progress)
-- "Intégrité système à 2%. Les données s'accumulent..."
-- "Capturez encore quelques Pokémon pour stabiliser le système."
+**`early_progress_2`** - OBSOLÈTE (remplacé par unlock_fishing_module)
 
 **`early_progress_3`** (Mood: NEUTRAL, Visual: progress)
 - "Intégrité système à 3%. Progression constante."
 - "Encore quelques captures et je pourrai activer de nouveaux modules."
 
-**`early_progress_4`** (Mood: NEUTRAL, Visual: progress)
-- "Intégrité système à 4%. Presque là..."
-- "Capturez encore 1 Pokémon pour débloquer le module de Pêche !"
+**`data_stabilization_progress`** (Mood: NEUTRAL, Visual: progress)
+- "Intégrité système à 4%. La stabilisation progresse..."
+- "Les fragments de données s'assemblent. Le code se répare lentement."
+- "Continuez vos captures, Archiviste. Chaque signal compte."
 
 ---
 
@@ -164,15 +163,17 @@
 
 ## 🔓 DÉBLOCAGE DES MODULES
 
-### 🎣 Module Pêche
+### 🎣 Module Pêche (Niveau 2)
 
 **`unlock_fishing_module`** (Mood: NEUTRAL, Visual: unlock)
-- "Tiens ? Je capte des signaux sous la surface liquide."
-- "J'ai compilé un module [CANNE_A_PECHE.exe]. Essayez d'extraire ces données humides."
+- "Signal détecté ! Des données immergées dans les secteurs liquides..."
+- "Compilation en cours... [CANNE_A_PECHE.exe] prête."
+- "Module de Pêche débloqué ! Vous pouvez maintenant extraire les Pokémon aquatiques."
+- "Accédez au module via le bouton [PÊCHE] dans le menu principal."
 
 ---
 
-### 🔬 Labo de Recherche
+### 🔬 Labo de Recherche (Niveau 5)
 
 **`unlock_research_core`** (Mood: PANIC, Visual: critical)
 - "Alerte Énergie. Maintenir la capture consomme trop de ressources. Je vais m'éteindre..."
