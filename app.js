@@ -9006,6 +9006,7 @@ function checkLevelUp() {
             triggerNarrative('unlock_research_core');
         }
         if (typeof checkNarrativeTriggers === 'function') checkNarrativeTriggers();
+        setTimeout(() => updateNavigationVisibility(), 200);
     }
 
     if (gameState.level === 6) {
@@ -9032,6 +9033,11 @@ function checkLevelUp() {
             gameState.system.narrativeFlags.push('rival_signal_decrypted_shown');
             setTimeout(() => triggerNarrative('rival_signal_decrypted'), 2000);
         }
+        // Débloquer Data Guardians (Boss Battle)
+        if (gameState.modules && gameState.modules.bossBattle && !gameState.modules.bossBattle.unlocked) {
+            gameState.modules.bossBattle.unlocked = true;
+        }
+        setTimeout(() => updateNavigationVisibility(), 200);
     }
 
     if (gameState.level === 9) {
@@ -9162,8 +9168,8 @@ function updateSystemVisualState() {
     // Retirer toutes les classes de glitch
     document.body.classList.remove('system-critical', 'system-unstable', 'system-stable', 'system-optimized', 'system-advanced');
 
-    // Si 5 captures ont été faites, le système est stable (même au niveau 1)
-    const hasStabilized = gameState.totalCaught >= 5;
+    // Si 3 captures ont été faites, le système est stable (même au niveau 1)
+    const hasStabilized = gameState.totalCaught >= 3;
 
     // Appliquer la classe selon le niveau (selon le tableau de progression)
     // Exception : Si 5 captures ont été faites, on retire le glitch même au niveau 1
@@ -9462,24 +9468,26 @@ window.forceShowInitButton = function () {
     btn.id = 'force-init-btn';
     btn.innerHTML = 'LANCER L\'AVENTURE <span style="font-size:1.2em">➤</span>';
 
-    // Styles agressifs "Brute Force" pour garantir la visibilité
     btn.style.cssText = `
         position: fixed !important;
-        bottom: 100px !important;
+        bottom: 80px !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
-        z-index: 2147483647 !important; /* Maximum possible */
-        padding: 20px 40px !important;
-        font-family: sans-serif !important;
-        font-size: 20px !important;
-        font-weight: bold !important;
+        z-index: 2147483647 !important;
+        padding: 14px 32px !important;
+        font-family: 'Rajdhani', sans-serif !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        letter-spacing: 2px !important;
+        text-transform: uppercase !important;
         color: white !important;
         background: linear-gradient(135deg, #7d5fff, #20d5d2) !important;
-        border: 3px solid white !important;
-        border-radius: 50px !important;
-        box-shadow: 0 0 30px rgba(125, 95, 255, 0.8) !important;
+        border: none !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 20px rgba(125, 95, 255, 0.5) !important;
         cursor: pointer !important;
         display: block !important;
+        white-space: nowrap !important;
         opacity: 1 !important;
         pointer-events: auto !important;
         animation: pulse-btn 2s infinite !important;
@@ -9523,6 +9531,9 @@ window.forceShowInitButton = function () {
 
             // 5. Aller à la page de capture
             if (typeof switchPage === 'function') switchPage('capture');
+
+            // 5b. Afficher la barre de stabilité immédiatement (updateUI n'est pas appelé ici)
+            if (typeof updateSystemStabilityDisplay === 'function') updateSystemStabilityDisplay();
 
             // 6. Valider l'étape du tutoriel
             if (typeof completeStep === 'function') completeStep('name');
@@ -9683,6 +9694,9 @@ function updateNavigationVisibility() {
         return 999;
     }
 
+    // Mettre à jour les verrous visuels des items Hub (Research & BossBattle)
+    if (typeof window.updateHubLockStates === 'function') window.updateHubLockStates();
+
     // Masquer les boutons des modules non débloqués avec style narratif
     Object.entries(moduleToNav).forEach(([moduleId, config]) => {
         const module = gameState.modules[moduleId];
@@ -9760,75 +9774,65 @@ function updateSystemStabilityDisplay() {
 
     if (!stabilityDisplay || !stabilityBar || !stabilityText) return;
 
-    // Afficher uniquement pour les niveaux 1-2 ET si pas encore complété
-    const targetCaptures = 5;
+    const TARGET_CAPTURES = 3;
     const currentCaptures = gameState.totalCaught || 0;
-    const isCompleted = currentCaptures >= targetCaptures;
+    const isCompleted = currentCaptures >= TARGET_CAPTURES;
+    const alreadyTriggered = (gameState.system?.narrativeFlags || []).includes('system_stabilizing_5_shown');
 
-    if (gameState.level <= 2 && !isCompleted) {
-        stabilityDisplay.style.display = 'flex';
-
-        // Calculer la stabilité basée sur le nombre de captures
-        // Objectif : 5 captures pour débloquer la Pêche (niveau 2)
-        const stabilityPercent = Math.min((currentCaptures / targetCaptures) * 100, 100);
-        const previousCaptures = gameState.previousStabilityCaptures || 0;
-
-        // Mettre à jour la barre
-        stabilityBar.style.width = `${stabilityPercent}%`;
-
-        // Mettre à jour le texte avec un message contextuel
-        if (currentCaptures === 0) {
-            stabilityText.textContent = '0% - Démarrage...';
-        } else if (currentCaptures < targetCaptures) {
-            const remaining = targetCaptures - currentCaptures;
-            stabilityText.textContent = `${Math.round(stabilityPercent)}% - ${remaining} capture${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''}`;
-        } else {
-            stabilityText.textContent = '100% - Système stable';
-        }
-
-        // Changer la couleur selon la progression
-        if (stabilityPercent < 33) {
-            stabilityBar.style.background = 'linear-gradient(90deg, #ef4444, #f59e0b)';
-        } else if (stabilityPercent < 66) {
-            stabilityBar.style.background = 'linear-gradient(90deg, #f59e0b, #eab308)';
-        } else {
-            stabilityBar.style.background = 'linear-gradient(90deg, #eab308, #10b981)';
-        }
-
-        // Déclencher un événement quand la barre atteint 100% (5 captures)
-        if (currentCaptures >= targetCaptures && previousCaptures < targetCaptures) {
-            // La barre vient d'atteindre 100%
-            if (!gameState.system) gameState.system = {};
-            if (!gameState.system.narrativeFlags) gameState.system.narrativeFlags = [];
-
-            // Déclencher le message de stabilisation si pas déjà fait
-            if (!gameState.system.narrativeFlags.includes('system_stabilizing_5_shown')) {
-                gameState.system.narrativeFlags.push('system_stabilizing_5_shown');
-                setTimeout(() => {
-                    if (typeof triggerNarrative === 'function') {
-                        triggerNarrative('system_stabilizing');
-                    }
-                }, 1500);
-            }
-
-            // Mise à jour visuelle du système (retirer le glitch)
-            if (typeof updateSystemVisualState === 'function') {
-                updateSystemVisualState();
-            }
-
-            // Masquer la barre après 3 secondes pour donner le temps de voir "100% - Système stable"
-            setTimeout(() => {
-                if (stabilityDisplay) {
-                    stabilityDisplay.style.display = 'none';
-                }
-            }, 3000);
-        }
-
-        // Sauvegarder le nombre actuel pour la prochaine vérification
-        gameState.previousStabilityCaptures = currentCaptures;
-    } else {
-        // Masquer pour les niveaux supérieurs OU si déjà complété
+    // Masquer si la complétion a déjà été traitée (le timeout de 3s s'en charge)
+    if (isCompleted && alreadyTriggered) {
         stabilityDisplay.style.display = 'none';
+        return;
+    }
+
+    // Masquer si niveau > 2 sans complétion en attente
+    if (gameState.level > 2 && !isCompleted) {
+        stabilityDisplay.style.display = 'none';
+        return;
+    }
+
+    stabilityDisplay.style.display = 'flex';
+
+    const stabilityPercent = Math.min((currentCaptures / TARGET_CAPTURES) * 100, 100);
+
+    // Mettre à jour la barre
+    stabilityBar.style.width = `${stabilityPercent}%`;
+
+    // Texte contextuel
+    if (currentCaptures === 0) {
+        stabilityText.textContent = '0% — Démarrage...';
+    } else if (!isCompleted) {
+        const remaining = TARGET_CAPTURES - currentCaptures;
+        stabilityText.textContent = `${Math.round(stabilityPercent)}% — ${remaining} capture${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''}`;
+    } else {
+        stabilityText.textContent = '100% — Système stable';
+    }
+
+    // Couleur selon progression
+    if (stabilityPercent < 34) {
+        stabilityBar.style.background = 'linear-gradient(90deg, #ef4444, #f59e0b)';
+    } else if (stabilityPercent < 67) {
+        stabilityBar.style.background = 'linear-gradient(90deg, #f59e0b, #eab308)';
+    } else {
+        stabilityBar.style.background = 'linear-gradient(90deg, #eab308, #10b981)';
+    }
+
+    // Déclencher la complétion une seule fois dès que la cible est atteinte
+    if (isCompleted && !alreadyTriggered) {
+        if (!gameState.system) gameState.system = {};
+        if (!gameState.system.narrativeFlags) gameState.system.narrativeFlags = [];
+        gameState.system.narrativeFlags.push('system_stabilizing_5_shown');
+
+        setTimeout(() => {
+            if (typeof triggerNarrative === 'function') triggerNarrative('system_stabilizing');
+        }, 1500);
+
+        if (typeof updateSystemVisualState === 'function') updateSystemVisualState();
+
+        // Masquer après 3s pour laisser voir "100% — Système stable"
+        setTimeout(() => {
+            if (stabilityDisplay) stabilityDisplay.style.display = 'none';
+        }, 3000);
     }
 }
 
@@ -9985,6 +9989,8 @@ window.attemptCapture = function (ballType, skillBonus = 1.0) {
     const pokemonToCapture = currentPokemon;
 
     // ===== CONSOMMATION IMMÉDIATE DES RESSOURCES =====
+    // Mémorisé avant consommation : permet de savoir si la baie a vraiment été utilisée ce lancer
+    const cerizWasAvailable = usingCeriz && gameState.inventory.ceriz > 0;
     gameState.inventory[ballType]--;
     if (usingFramby && gameState.inventory.framby > 0) gameState.inventory.framby--;
     if (usingPinap && gameState.inventory.pinap > 0) gameState.inventory.pinap--;
@@ -10045,11 +10051,12 @@ window.attemptCapture = function (ballType, skillBonus = 1.0) {
     } else {
         // ÉCHEC CRITIQUE - Vérification des Safety Nets
 
-        // Safety Net 1: Baie Ceriz
-        if (usingCeriz) {
+        // Safety Net 1: Baie Ceriz — ne se déclenche que si la baie a été consommée ce lancer
+        if (cerizWasAvailable) {
+            usingCeriz = false; // baie consommée, reset le flag pour éviter des retries infinis
             const message = window.NARRATIVE_DB?.SAFETY_NETS?.CERIZ_BERRY || 'La Baie Ceriz retient le Pokémon!';
             showToast(message, 'info');
-            // Le joueur a le droit à un nouveau tour (pas de fuite)
+            revealPokemon(); // rafraîchit l'UI : retire la case Ceriz, met à jour les compteurs de balls
             return { success: false, status: 'retry', message: message };
         }
 
@@ -10087,22 +10094,7 @@ function handleCaptureSuccess(pokemon, ballType, skillBonus) {
     // Ajout à la collection
     addToCollection(pokemon.id, pokemon.isShiny);
 
-    // ===== FIX : Vérifier la progression du glitch après 5 captures =====
-    if (gameState.totalCaught === 5) {
-        // Message de stabilisation
-        if (!gameState.system.narrativeFlags.includes('system_stabilizing_5_shown')) {
-            gameState.system.narrativeFlags.push('system_stabilizing_5_shown');
-            setTimeout(() => {
-                if (typeof triggerNarrative === 'function') {
-                    triggerNarrative('system_stabilizing');
-                }
-            }, 2000);
-        }
-        // Mise à jour visuelle du système (retirer le glitch)
-        if (typeof updateSystemVisualState === 'function') {
-            updateSystemVisualState();
-        }
-    }
+    // La stabilisation à 3 captures est gérée par updateSystemStabilityDisplay (appelé via updateUI)
 
     // Récompenses
     let coinsEarned = { common: 120, uncommon: 200, rare: 600, super_rare: 1000, legendary: 3500 }[pokemon.rarity];
@@ -15867,7 +15859,7 @@ function checkAndUnlockCustomization() {
 
 // Fonction pour mettre à jour la notification de personnalisation
 function updateCustomizationNotification() {
-    const trainerInfo = document.querySelector('.trainer-info');
+    const trainerInfo = document.querySelector('.trainer-card');
     if (!trainerInfo) return;
 
     // Vérifier s'il y a des éléments non vus
@@ -16248,102 +16240,59 @@ function updateProfileDisplay() {
 
 // Fonction pour mettre à jour l'affichage de la barre supérieure
 function updateTopBarDisplay() {
-    const trainerInfo = document.querySelector('.trainer-info');
-    if (!trainerInfo) return;
+    const trainerCard = document.querySelector('.trainer-card');
+    if (!trainerCard) return;
 
-    // S'assurer que trainer-info est en flex pour aligner l'icône avec le contenu
-    trainerInfo.style.display = 'flex';
-    trainerInfo.style.alignItems = 'center';
-    trainerInfo.style.gap = '8px';
-
-    // Mettre à jour l'icône
-    const iconEl = trainerInfo.querySelector('#topbar-icon');
+    // --- Icône ---
+    const iconEl = trainerCard.querySelector('#topbar-icon');
     if (iconEl) {
         const selectedIcon = CUSTOMIZATION_DATA.icons.find(i => i.id === (gameState.customization.selectedIcon || 'default')) || CUSTOMIZATION_DATA.icons[0];
-        if (selectedIcon) {
-            if (selectedIcon.iconUrl) {
-                // Créer l'image avec gestion d'erreur
-                const img = document.createElement('img');
-                img.src = selectedIcon.iconUrl;
-                img.crossOrigin = 'anonymous'; // Pour éviter les problèmes CORS
-                img.loading = 'eager'; // Chargement immédiat
-                img.style.cssText = 'width: 32px; height: 32px; image-rendering: pixelated; background: rgba(255,255,255,0.1); border-radius: 50%; object-fit: contain; display: inline-block; vertical-align: middle; flex-shrink: 0;';
-
-                // Timeout pour forcer le fallback si l'image ne charge pas rapidement (augmenté pour PWA)
-                const timeout = setTimeout(() => {
-                    if (!img.complete || img.naturalWidth === 0) {
-                        iconEl.innerHTML = '';
-                        iconEl.textContent = selectedIcon.icon || '👤';
-                        iconEl.style.fontSize = '1.2em';
-                    }
-                }, 5000);
-
-                img.onerror = function () {
-                    clearTimeout(timeout);
-                    // Fallback vers l'emoji si l'image ne charge pas
-                    iconEl.innerHTML = '';
-                    iconEl.textContent = selectedIcon.icon || '👤';
-                    iconEl.style.fontSize = '1.2em';
-                };
-                // Fallback rapide pour PWA
-                const quickCheckTopBar = setTimeout(() => {
-                    if (!img.complete || img.naturalWidth === 0 || img.offsetWidth === 0) {
-                        clearTimeout(timeout);
-                        iconEl.innerHTML = '';
-                        iconEl.textContent = selectedIcon.icon || '👤';
-                        iconEl.style.fontSize = '1.2em';
-                    }
-                }, 1000);
-
-                img.onerror = function () {
-                    clearTimeout(timeout);
-                    clearTimeout(quickCheckTopBar);
-                    // Fallback vers l'emoji si l'image ne charge pas
-                    iconEl.innerHTML = '';
-                    iconEl.textContent = selectedIcon.icon || '👤';
-                    iconEl.style.fontSize = '1.2em';
-                };
-                img.onload = function () {
-                    clearTimeout(timeout);
-                    clearTimeout(quickCheckTopBar);
-                    // S'assurer que l'image est visible
-                    if (img.complete && img.naturalWidth > 0) {
-                        img.style.display = 'inline-block';
-                        img.style.visibility = 'visible';
-                        img.style.opacity = '1';
-                    } else {
-                        iconEl.innerHTML = '';
-                        iconEl.textContent = selectedIcon.icon || '👤';
-                        iconEl.style.fontSize = '1.2em';
-                    }
-                };
-                iconEl.innerHTML = '';
-                iconEl.appendChild(img);
-            } else {
-                iconEl.innerHTML = '';
-                iconEl.textContent = selectedIcon.icon || '👤';
-                iconEl.style.fontSize = '1.2em';
-            }
-        } else {
-            // Fallback ultime si aucun icône n'est trouvé
+        const fallback = () => {
             iconEl.innerHTML = '';
-            iconEl.textContent = '👤';
-            iconEl.style.fontSize = '1.2em';
+            const iconChar = (selectedIcon?.icon && !selectedIcon.icon.startsWith('icon_'))
+                ? selectedIcon.icon : '👤';
+            iconEl.textContent = iconChar;
+            iconEl.style.cssText = 'font-size: 1.3em; line-height: 1; display: flex; align-items: center; justify-content: center;';
+        };
+        if (selectedIcon?.iconUrl) {
+            const img = document.createElement('img');
+            img.src = selectedIcon.iconUrl;
+            img.crossOrigin = 'anonymous';
+            img.loading = 'eager';
+            img.style.cssText = 'width: 28px; height: 28px; image-rendering: pixelated; object-fit: contain; display: block;';
+            const t1 = setTimeout(() => { if (!img.complete || img.naturalWidth === 0) fallback(); }, 5000);
+            const t2 = setTimeout(() => { if (!img.complete || img.naturalWidth === 0 || img.offsetWidth === 0) { clearTimeout(t1); fallback(); } }, 1000);
+            img.onerror = () => { clearTimeout(t1); clearTimeout(t2); fallback(); };
+            img.onload = () => {
+                clearTimeout(t1); clearTimeout(t2);
+                if (!img.complete || img.naturalWidth === 0) fallback();
+            };
+            iconEl.innerHTML = '';
+            iconEl.appendChild(img);
+        } else {
+            fallback();
         }
     }
 
-    // Mettre à jour la barre XP
+    // --- Pseudo ---
+    const nameEl = document.getElementById('topbar-name');
+    if (nameEl) {
+        nameEl.textContent = gameState.customization?.trainerName || 'Dresseur';
+    }
+
+    // --- Barre XP (couleur personnalisée) ---
     const xpBarEl = document.getElementById('xp-bar');
     if (xpBarEl) {
         const selectedBar = CUSTOMIZATION_DATA.xpBars.find(b => b.id === (gameState.customization.selectedXpBar || 'classic_blue'));
         if (selectedBar) xpBarEl.style.background = selectedBar.style;
     }
 
-    // Mettre à jour le titre
-    const titleEl = trainerInfo.querySelector('#topbar-title');
+    // --- Titre ---
+    const titleEl = trainerCard.querySelector('#topbar-title');
     if (titleEl) {
-        const selectedTitle = gameState.customization.selectedTitle ?
-            CUSTOMIZATION_DATA.titles.find(t => t.id === gameState.customization.selectedTitle) : null;
+        const selectedTitle = gameState.customization.selectedTitle
+            ? CUSTOMIZATION_DATA.titles.find(t => t.id === gameState.customization.selectedTitle)
+            : null;
         if (selectedTitle) {
             titleEl.textContent = selectedTitle.name;
             titleEl.style.display = 'block';
@@ -16352,15 +16301,13 @@ function updateTopBarDisplay() {
         }
     }
 
-    // Appliquer le background au header sticky
-    const topBarElement = document.querySelector('.top-bar');
-    if (topBarElement) {
-        const selectedBgId = gameState.customization.selectedBackground || 'default';
-        const bgData = CUSTOMIZATION_DATA.backgrounds.find(b => b.id === selectedBgId);
-        if (bgData) {
-            topBarElement.style.background = bgData.style;
-            topBarElement.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
-        }
+    // --- Background : appliqué sur la carte uniquement via CSS variable ---
+    const selectedBgId = gameState.customization.selectedBackground || 'default';
+    const bgData = CUSTOMIZATION_DATA.backgrounds.find(b => b.id === selectedBgId);
+    if (bgData) {
+        trainerCard.style.setProperty('--tc-bg', bgData.style);
+    } else {
+        trainerCard.style.removeProperty('--tc-bg');
     }
 }
 
@@ -22281,8 +22228,8 @@ document.addEventListener('DOMContentLoaded', () => {
         coinsIcon.innerHTML = getItemIconDisplay('coins', '1.2em');
     }
     if (streakIcon) {
-        // Pour le streak, on peut utiliser un item de type feu ou un item spécial
-        streakIcon.innerHTML = getItemIconDisplay('type_fire', '1.2em');
+        streakIcon.innerHTML = '🔥';
+        streakIcon.style.cssText = 'font-size: 1.3em; width: auto; height: auto; line-height: 1; display: inline-block; vertical-align: middle;';
     }
 
     // Mettre à jour les icônes de stats
