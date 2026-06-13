@@ -215,6 +215,7 @@
         let enemyIdx = nextAliveIndex(enemies, 0);
         let turn = 0;
         const maxTurns = 100;
+        const steps = [];
 
         while (playerIdx >= 0 && enemyIdx >= 0 && turn < maxTurns) {
             turn++;
@@ -234,7 +235,18 @@
                 const dmg = getEffectiveDamage(action.atk, action.def);
                 action.def.currentHp = Math.max(0, action.def.currentHp - dmg);
                 if (onLog) onLog(`${action.atk.name} inflige ${dmg} à ${action.def.name}`);
-                if (action.def.currentHp <= 0) {
+                const ko = action.def.currentHp <= 0;
+                steps.push({
+                    side: action.side,
+                    attackerName: action.atk.name, attackerId: action.atk.id,
+                    defenderName: action.def.name, defenderId: action.def.id,
+                    dmg, ko,
+                    playerId: team[playerIdx]?.id, playerName: team[playerIdx]?.name,
+                    playerHp: team[playerIdx]?.currentHp ?? 0, playerMaxHp: team[playerIdx]?.maxHp ?? 1,
+                    enemyId: enemies[enemyIdx]?.id, enemyName: enemies[enemyIdx]?.name,
+                    enemyHp: enemies[enemyIdx]?.currentHp ?? 0, enemyMaxHp: enemies[enemyIdx]?.maxHp ?? 1
+                });
+                if (ko) {
                     if (onLog) onLog(`${action.def.name} est K.O. !`);
                     if (action.side === 'enemy') enemyIdx = nextAliveIndex(enemies, enemyIdx + 1);
                     else playerIdx = nextAliveIndex(team, playerIdx + 1);
@@ -252,7 +264,7 @@
             const live = team.find(t => t.uid === p.uid);
             if (live) p.currentHp = live.currentHp;
         });
-        return { won, turns: turn };
+        return { won, turns: turn, steps };
     }
 
     function checkRunEvolution(pokemon) {
@@ -447,7 +459,9 @@
         const nodes = runState.map.nodes;
         const available = new Set(getAvailableNodes().map(n => n.id));
         const maxRow = POKELIKE_CONFIG.mapRows - 1;
-        const rowHeight = 100 / maxRow;
+
+        // Y inversé : row 0 (départ) en bas, row maxRow (boss) en haut
+        const getY = row => (1 - row / maxRow) * 88 + 4;
 
         let svgLines = '';
         runState.map.connections.forEach(c => {
@@ -455,9 +469,9 @@
             const to = nodes.find(n => n.id === c.to);
             if (!from || !to) return;
             const x1 = getNodeX(from);
-            const y1 = (from.row / maxRow) * 88 + 6;
+            const y1 = getY(from.row);
             const x2 = getNodeX(to);
-            const y2 = (to.row / maxRow) * 88 + 6;
+            const y2 = getY(to.row);
             const active = from.completed && available.has(to.id);
             svgLines += `<line x1="${x1}%" y1="${y1}%" x2="${x2}%" y2="${y2}%" class="pl-path ${from.completed ? 'pl-path--done' : ''} ${active ? 'pl-path--active' : ''}"/>`;
         });
@@ -466,29 +480,33 @@
         nodes.forEach(n => {
             const meta = NODE_META[n.type] || NODE_META.wild;
             const x = getNodeX(n);
-            const y = (n.row / maxRow) * 88 + 4;
+            const y = getY(n.row);
             const isAvailable = available.has(n.id);
             const isDone = n.completed;
             const isCurrent = runState.currentNodeId === n.id;
             nodeHtml += `
                 <button class="pl-node pl-node--${n.type} ${isDone ? 'pl-node--done' : ''} ${isAvailable ? 'pl-node--available' : ''} ${isCurrent ? 'pl-node--current' : ''}"
                     style="left:${x}%;top:${y}%;"
+                    ${isCurrent ? 'data-map-current="true"' : ''}
                     ${isAvailable ? `onclick="PokeLike.selectNode(${n.id})"` : 'disabled'}
                     title="${meta.label}">
                     <span class="pl-node-icon">${meta.icon}</span>
                 </button>`;
         });
 
-        return `
-            <svg class="pl-map-lines" viewBox="0 0 100 100" preserveAspectRatio="none">${svgLines}</svg>
-            <div class="pl-map-nodes">${nodeHtml}</div>`;
+        // SVG dans le même conteneur référentiel que les nœuds (référentiel unique)
+        return `<div class="pl-map-nodes">
+                <svg class="pl-map-lines" viewBox="0 0 100 100" preserveAspectRatio="none">${svgLines}</svg>
+                ${nodeHtml}
+            </div>`;
     }
 
     function getNodeX(node) {
         const rowNodes = runState.map.nodes.filter(n => n.row === node.row);
         const idx = rowNodes.findIndex(n => n.id === node.id);
         const count = rowNodes.length;
-        return 20 + (idx + 0.5) * (60 / count);
+        if (count === 1) return 50;
+        return 10 + idx * (80 / (count - 1));
     }
 
     function renderRunUI(extraPanel = '') {
@@ -526,6 +544,18 @@
                     </div>
                 </div>
             </div>`;
+        // Auto-scroll vers la rangée courante (départ = bas de la carte)
+        setTimeout(() => {
+            const mapScroll = container.querySelector('.pl-map-scroll');
+            if (mapScroll) {
+                const currentBtn = mapScroll.querySelector('[data-map-current="true"]');
+                if (currentBtn) {
+                    mapScroll.scrollTop = currentBtn.offsetTop - mapScroll.clientHeight / 2;
+                } else {
+                    mapScroll.scrollTop = mapScroll.scrollHeight;
+                }
+            }
+        }, 50);
     }
 
     function addItem(itemId, qty = 1) {
@@ -549,45 +579,142 @@
     }
 
     function showBattlePanel(enemyTeam, nodeType, callback) {
-        const enemyHtml = enemyTeam.map(e =>
-            `<div class="pl-battle-enemy"><img src="${getAnimatedSpriteUrl(e.id, false)}"><span>${e.name} Niv.${e.level}</span></div>`
-        ).join('');
+        const firstEnemy = enemyTeam[0];
+        const firstPlayer = runState.team[0];
+        const nodeLabel = nodeType === 'gym' ? 'Combat d\'Arène !' : nodeType === 'elite' ? 'Élite 4 !' : nodeType === 'champion' ? 'Champion !' : 'Combat !';
 
         renderRunUI(`
             <div class="pl-event-panel pl-battle-panel">
-                <h3>${NODE_META[nodeType]?.icon || '⚔️'} Combat automatique</h3>
-                <div class="pl-battle-enemies">${enemyHtml}</div>
-                <div id="pl-battle-log" class="pl-battle-log"></div>
-                <button id="pl-battle-start" class="btn btn--primary">Lancer le combat</button>
+                <div class="pl-battle-arena">
+                    <div class="pl-battle-side pl-battle-side--enemy">
+                        <div class="pl-datbox pl-datbox--enemy">
+                            <div class="pl-datbox-row">
+                                <span class="pl-datbox-name" id="pl-enemy-name">${firstEnemy.name}</span>
+                                <span class="pl-datbox-level">Niv.${firstEnemy.level}</span>
+                            </div>
+                            <div class="pl-hp-bar-wrap"><div class="pl-hp-bar" id="pl-hp-bar-enemy"></div></div>
+                        </div>
+                        <img class="pl-battle-sprite pl-battle-sprite--enemy" id="pl-sprite-enemy" src="${getAnimatedSpriteUrl(firstEnemy.id, false)}">
+                    </div>
+                    <div class="pl-battle-side pl-battle-side--player">
+                        <img class="pl-battle-sprite pl-battle-sprite--player" id="pl-sprite-player" src="${getAnimatedSpriteUrl(firstPlayer.id, false)}">
+                        <div class="pl-datbox pl-datbox--player">
+                            <div class="pl-datbox-row">
+                                <span class="pl-datbox-name" id="pl-player-name">${firstPlayer.name}</span>
+                                <span class="pl-datbox-level">Niv.${firstPlayer.level}</span>
+                            </div>
+                            <div class="pl-hp-bar-wrap"><div class="pl-hp-bar" id="pl-hp-bar-player"></div></div>
+                            <div class="pl-datbox-hp-text" id="pl-hp-text-player">${firstPlayer.currentHp}/${firstPlayer.maxHp}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pl-battle-msg" id="pl-battle-msg">${NODE_META[nodeType]?.icon || '⚔️'} ${nodeLabel}</div>
+                <div class="pl-battle-btns">
+                    <button id="pl-battle-start" class="btn btn--primary">⚔️ Lancer le combat</button>
+                    <button id="pl-battle-skip" class="btn btn--secondary" style="display:none">⏭ Passer</button>
+                </div>
             </div>`);
 
         document.getElementById('pl-battle-start').onclick = () => {
-            const logEl = document.getElementById('pl-battle-log');
             const startBtn = document.getElementById('pl-battle-start');
-            startBtn.disabled = true;
-            const battleLogs = [];
+            const skipBtn = document.getElementById('pl-battle-skip');
+            startBtn.style.display = 'none';
+            skipBtn.style.display = 'inline-block';
+
             const teamCopy = runState.team.map(p => ({ ...p, stats: { ...p.stats } }));
             const enemiesCopy = enemyTeam.map(e => ({ ...e, stats: { ...e.stats } }));
-            const result = simulateAutoBattle(teamCopy, enemiesCopy, msg => battleLogs.push(msg));
+            const result = simulateAutoBattle(teamCopy, enemiesCopy);
             runState.team = teamCopy;
-            let li = 0;
-            const playLog = () => {
-                if (li < battleLogs.length) {
-                    logEl.innerHTML += `<div>${battleLogs[li]}</div>`;
-                    logEl.scrollTop = logEl.scrollHeight;
-                    li++;
-                    setTimeout(playLog, 90);
-                } else {
-                    logEl.innerHTML += `<div class="pl-battle-result ${result.won ? 'win' : 'lose'}">${result.won ? '✅ Victoire !' : '❌ Défaite...'}</div>`;
-                    startBtn.style.display = 'none';
+
+            let stepIdx = 0;
+            let skipped = false;
+
+            const finish = () => {
+                const msg = document.getElementById('pl-battle-msg');
+                if (msg) {
+                    msg.textContent = result.won ? '✅ Victoire !' : '❌ Défaite...';
+                    msg.className = 'pl-battle-msg ' + (result.won ? 'pl-battle-msg--win' : 'pl-battle-msg--lose');
+                }
+                if (skipBtn) skipBtn.style.display = 'none';
+                const btns = document.querySelector('.pl-battle-btns');
+                if (btns) {
                     const btn = document.createElement('button');
                     btn.className = 'btn btn--primary';
                     btn.textContent = 'Continuer';
                     btn.onclick = () => callback(result.won);
-                    document.querySelector('.pl-battle-panel').appendChild(btn);
+                    btns.appendChild(btn);
                 }
             };
-            playLog();
+
+            skipBtn.onclick = () => { skipped = true; finish(); };
+
+            const setHpBar = (el, hp, maxHp) => {
+                if (!el) return;
+                const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+                el.style.width = pct + '%';
+                el.className = 'pl-hp-bar' + (pct > 50 ? '' : pct > 20 ? ' pl-hp-bar--orange' : ' pl-hp-bar--red');
+            };
+
+            const playStep = () => {
+                if (skipped) return;
+                if (stepIdx >= result.steps.length) { finish(); return; }
+                const step = result.steps[stepIdx++];
+
+                const spriteEnemy = document.getElementById('pl-sprite-enemy');
+                const spritePlayer = document.getElementById('pl-sprite-player');
+                const hpBarEnemy = document.getElementById('pl-hp-bar-enemy');
+                const hpBarPlayer = document.getElementById('pl-hp-bar-player');
+                const hpText = document.getElementById('pl-hp-text-player');
+                const msgEl = document.getElementById('pl-battle-msg');
+                const enemyNameEl = document.getElementById('pl-enemy-name');
+                const playerNameEl = document.getElementById('pl-player-name');
+
+                if (!msgEl) return;
+
+                // Mettre à jour sprite/nom si nouveau Pokémon au front
+                if (spritePlayer && step.playerId && spritePlayer.dataset.uid !== String(step.playerId)) {
+                    spritePlayer.src = getAnimatedSpriteUrl(step.playerId, false);
+                    spritePlayer.style.opacity = '1';
+                    spritePlayer.dataset.uid = step.playerId;
+                    if (playerNameEl) playerNameEl.textContent = step.playerName;
+                }
+                if (spriteEnemy && step.enemyId && spriteEnemy.dataset.uid !== String(step.enemyId)) {
+                    spriteEnemy.src = getAnimatedSpriteUrl(step.enemyId, false);
+                    spriteEnemy.style.opacity = '1';
+                    spriteEnemy.dataset.uid = step.enemyId;
+                    if (enemyNameEl) enemyNameEl.textContent = step.enemyName;
+                }
+
+                // Animation lunge
+                if (step.side === 'player' && spritePlayer) {
+                    spritePlayer.classList.add('pl-sprite-lunge--right');
+                    setTimeout(() => spritePlayer && spritePlayer.classList.remove('pl-sprite-lunge--right'), 350);
+                } else if (spriteEnemy) {
+                    spriteEnemy.classList.add('pl-sprite-lunge--left');
+                    setTimeout(() => spriteEnemy && spriteEnemy.classList.remove('pl-sprite-lunge--left'), 350);
+                }
+
+                // Mise à jour HP bars
+                setHpBar(hpBarPlayer, step.playerHp, step.playerMaxHp);
+                setHpBar(hpBarEnemy, step.enemyHp, step.enemyMaxHp);
+                if (hpText) hpText.textContent = `${Math.max(0, step.playerHp)}/${step.playerMaxHp}`;
+
+                // Message
+                msgEl.className = 'pl-battle-msg';
+                msgEl.textContent = step.ko
+                    ? `${step.defenderName} est K.O. !`
+                    : `${step.attackerName} inflige ${step.dmg} pts à ${step.defenderName}`;
+
+                // KO : fade-out du sprite perdant
+                if (step.ko) {
+                    const defeated = step.side === 'player' ? spriteEnemy : spritePlayer;
+                    if (defeated) { defeated.style.transition = 'opacity 0.5s'; defeated.style.opacity = '0.1'; }
+                }
+
+                setTimeout(playStep, step.ko ? 1000 : 700);
+            };
+
+            playStep();
         };
     }
 
