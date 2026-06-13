@@ -8211,8 +8211,13 @@ img, canvas, video {
 .pl-node--elite { background: rgba(179,136,255,0.45); }
 .pl-node--champion { background: rgba(255,111,0,0.5); width: 52px; height: 52px; }
 
-.pl-node-icon {
-    font-size: 1.2rem;
+.pl-node-icon { font-size: 1.2rem; }
+
+.pl-node-sprite {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+    display: block;
 }
 
 @keyframes plNodePulse {

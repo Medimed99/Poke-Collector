@@ -25,17 +25,17 @@
     };
 
     const NODE_META = {
-        wild: { icon: '🌿', label: 'Sauvage', color: '#4caf50' },
-        trainer: { icon: '👤', label: 'Dresseur', color: '#2196f3' },
-        capture: { icon: '🔴', label: 'Capture', color: '#f44336' },
-        item: { icon: '📦', label: 'Objet', color: '#ff9800' },
-        heal: { icon: '🏥', label: 'Soin', color: '#e91e63' },
-        trade: { icon: '🔄', label: 'Échange', color: '#9c27b0' },
-        event: { icon: '❓', label: 'Événement', color: '#607d8b' },
-        gym: { icon: '🏅', label: 'Arène', color: '#ffd700' },
-        elite: { icon: '👑', label: 'Elite Four', color: '#b388ff' },
-        champion: { icon: '🏆', label: 'Champion', color: '#ff6f00' },
-        start: { icon: '🚩', label: 'Départ', color: '#8bc34a' }
+        wild:     { icon: '🌿', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/16.png',      label: 'Sauvage',    color: '#4caf50' },
+        trainer:  { icon: '👤', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/19.png',      label: 'Dresseur',   color: '#2196f3' },
+        capture:  { icon: '🔴', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png', label: 'Capture',    color: '#f44336' },
+        item:     { icon: '📦', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/rare-candy.png',label: 'Objet',      color: '#ff9800' },
+        heal:     { icon: '🏥', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/potion.png',    label: 'Soin',       color: '#e91e63' },
+        trade:    { icon: '🔄', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png',      label: 'Échange',    color: '#9c27b0' },
+        event:    { icon: '❓', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/132.png',     label: 'Événement',  color: '#607d8b' },
+        gym:      { icon: '🏅', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/68.png',      label: 'Arène',      color: '#ffd700' },
+        elite:    { icon: '👑', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png',     label: 'Elite Four', color: '#b388ff' },
+        champion: { icon: '🏆', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png',       label: 'Champion',   color: '#ff6f00' },
+        start:    { icon: '🚩', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png',       label: 'Départ',     color: '#8bc34a' }
     };
 
     const TYPE_ITEMS = {
@@ -490,7 +490,7 @@
                     ${isCurrent ? 'data-map-current="true"' : ''}
                     ${isAvailable ? `onclick="PokeLike.selectNode(${n.id})"` : 'disabled'}
                     title="${meta.label}">
-                    <span class="pl-node-icon">${meta.icon}</span>
+                    <img class="pl-node-sprite" src="${meta.sprite}" alt="${meta.label}">
                 </button>`;
         });
 
