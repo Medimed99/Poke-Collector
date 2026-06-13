@@ -9973,7 +9973,7 @@ window.spawnPokemon = function () {
     }, 1000);
 };
 
-function revealPokemon() { const encounterDiv = document.getElementById('encounter'); if (!encounterDiv || !currentPokemon) return; const isNew = !gameState.captured.has(currentPokemon.id); const statusBadge = isNew ? '<div style="background: #10b981; color: white; padding: 5px 15px; border-radius: 15px; display: inline-block; margin-bottom: 10px; font-size: 0.9em;">✨ NOUVEAU!</div>' : '<div style="background: #f59e0b; color: white; padding: 5px 15px; border-radius: 15px; display: inline-block; margin-bottom: 10px; font-size: 0.9em;">📖 Doublon</div>'; let berriesHTML = ''; if (gameState.inventory.framby > 0) berriesHTML += `<div style="margin-bottom: 10px;"><label style="color: white; cursor: pointer; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 10px; display: inline-block;"><input type="checkbox" onchange="usingFramby = this.checked; revealPokemon();" ${usingFramby ? 'checked' : ''} style="margin-right: 8px;">${getItemIconDisplay('framby', '1.2em')} Baie Framby (+50%) [${gameState.inventory.framby}]</label></div>`; if (gameState.inventory.pinap > 0) berriesHTML += `<div style="margin-bottom: 10px;"><label style="color: white; cursor: pointer; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 10px; display: inline-block;"><input type="checkbox" onchange="usingPinap = this.checked; revealPokemon();" ${usingPinap ? 'checked' : ''} style="margin-right: 8px;">${getItemIconDisplay('pinap', '1.2em')} Baie Pinap (×2 coins) [${gameState.inventory.pinap}]</label></div>`; if (gameState.inventory.ceriz > 0 && currentPokemon.isShiny) berriesHTML += `<div style="margin-bottom: 10px;"><label style="color: #FFD700; cursor: pointer; background: rgba(255, 215, 0, 0.2); padding: 10px 20px; border-radius: 10px; display: inline-block;"><input type="checkbox" onchange="usingCeriz = this.checked; revealPokemon();" ${usingCeriz ? 'checked' : ''} style="margin-right: 8px;">${getItemIconDisplay('ceriz', '1.2em')} Baie Ceriz (100% SHINY!) [${gameState.inventory.ceriz}]</label></div>`; encounterDiv.innerHTML = `<div style="text-align: center; padding: 30px; background: linear-gradient(180deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3)); border-radius: 15px;">${statusBadge}<div style="font-size: 1.3em; font-weight: bold; margin-bottom: 15px; color: white;">${currentPokemon.rarity === 'legendary' ? '⚡ POKÉMON LÉGENDAIRE ⚡' : currentPokemon.rarity === 'super_rare' ? '💎 SUPER RARE 💎' : currentPokemon.rarity === 'rare' ? '⭐ RARE ⭐' : currentPokemon.rarity === 'uncommon' ? '🔵 PEU COMMUN 🔵' : '⚪ COMMUN ⚪'}</div><div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 15px;"><img src="${getAnimatedSpriteUrl(currentPokemon.id, currentPokemon.isShiny)}" style="width: 150px; height: 150px; min-width: 150px; min-height: 150px; max-width: 150px; max-height: 150px; image-rendering: pixelated; ${currentPokemon.isShiny ? 'filter: drop-shadow(0 0 20px #FFD700);' : ''}; object-fit: contain; object-position: center; display: block; margin: 0 auto;" alt="${currentPokemon.name}"></div><div style="font-size: 1.5em; font-weight: bold; margin: 10px 0; color: ${currentPokemon.isShiny ? '#FFD700' : 'white'};"> ${currentPokemon.isShiny ? '✨ ' : ''}${currentPokemon.name}${currentPokemon.isShiny ? ' ✨' : ''}</div><div style="font-size: 0.9em; color: rgba(255,255,255,0.7); margin-bottom: 20px;">#${currentPokemon.id.toString().padStart(3, '0')} • ${POKEMON_TYPES[currentPokemon.id]?.join(' / ') || 'Normal'}</div>${berriesHTML}<div id="ball-selector" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">${gameState.inventory.pokeball > 0 ? `<button onclick="startCaptureMinigame('pokeball')" style="background: linear-gradient(135deg, #ef4444, #f97316); padding: 10px 20px; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">${getItemIconDisplay('pokeball', '1.2em')} Poké Ball (${gameState.inventory.pokeball})<br><span style="font-size: 0.8em;">${Math.round(calculateCaptureRate('pokeball', currentPokemon.rarity, usingFramby) * 100)}%</span></button>` : ''}${gameState.inventory.greatball > 0 ? `<button onclick="startCaptureMinigame('greatball')" style="background: linear-gradient(135deg, #3b82f6, #2563eb); padding: 10px 20px; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">${getItemIconDisplay('greatball', '1.2em')} Super Ball (${gameState.inventory.greatball})<br><span style="font-size: 0.8em;">${Math.round(calculateCaptureRate('greatball', currentPokemon.rarity, usingFramby) * 100)}%</span></button>` : ''}${gameState.inventory.ultraball > 0 ? `<button onclick="startCaptureMinigame('ultraball')" style="background: linear-gradient(135deg, #eab308, #f59e0b); padding: 10px 20px; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">${getItemIconDisplay('ultraball', '1.2em')} Hyper Ball (${gameState.inventory.ultraball})<br><span style="font-size: 0.8em;">${Math.round(calculateCaptureRate('ultraball', currentPokemon.rarity, usingFramby) * 100)}%</span></button>` : ''}${gameState.inventory.masterball > 0 ? `<button onclick="startCaptureMinigame('masterball')" style="background: linear-gradient(135deg, #9333ea, #ec4899); padding: 10px 20px; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">${getItemIconDisplay('masterball', '1.2em')} Master Ball (${gameState.inventory.masterball})<br><span style="font-size: 0.8em;">100%</span></button>` : ''}${gameState.inventory.diveball > 0 ? `<button onclick="startCaptureMinigame('diveball')" style="background: linear-gradient(135deg, #0ea5e9, #06b6d4); padding: 10px 20px; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">${getItemIconDisplay('diveball', '1.2em')} Scuba Ball (${gameState.inventory.diveball})<br><span style="font-size: 0.8em;">${Math.round(calculateCaptureRate('diveball', currentPokemon.rarity, usingFramby) * 100)}%</span></button>` : ''}</div><button onclick="fleePokemon()" class="btn btn--outline" style="padding: 10px 20px; font-size: 1em; background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444;">🏃 Fuir</button></div>`; captureCooldown = Date.now() + 3000; updateCooldownDisplay(); }
+function revealPokemon() { const encounterDiv = document.getElementById('encounter'); if (!encounterDiv || !currentPokemon) return; const isNew = !gameState.captured.has(currentPokemon.id); const statusBadge = isNew ? '<div style="background: #10b981; color: white; padding: 5px 15px; border-radius: 15px; display: inline-block; margin-bottom: 10px; font-size: 0.9em;">✨ NOUVEAU!</div>' : '<div style="background: #f59e0b; color: white; padding: 5px 15px; border-radius: 15px; display: inline-block; margin-bottom: 10px; font-size: 0.9em;">📖 Doublon</div>'; let berriesHTML = ''; if (gameState.inventory.framby > 0) berriesHTML += `<div style="margin-bottom: 10px;"><label style="color: white; cursor: pointer; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 10px; display: inline-block;"><input type="checkbox" onchange="usingFramby = this.checked; revealPokemon();" ${usingFramby ? 'checked' : ''} style="margin-right: 8px;">${getItemIconDisplay('framby', '1.2em')} Baie Framby (+50%) [${gameState.inventory.framby}]</label></div>`; if (gameState.inventory.pinap > 0) berriesHTML += `<div style="margin-bottom: 10px;"><label style="color: white; cursor: pointer; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 10px; display: inline-block;"><input type="checkbox" onchange="usingPinap = this.checked; revealPokemon();" ${usingPinap ? 'checked' : ''} style="margin-right: 8px;">${getItemIconDisplay('pinap', '1.2em')} Baie Pinap (×2 coins) [${gameState.inventory.pinap}]</label></div>`; if (gameState.inventory.ceriz > 0 && currentPokemon.isShiny) berriesHTML += `<div style="margin-bottom: 10px;"><label style="color: #FFD700; cursor: pointer; background: rgba(255, 215, 0, 0.2); padding: 10px 20px; border-radius: 10px; display: inline-block;"><input type="checkbox" onchange="usingCeriz = this.checked; revealPokemon();" ${usingCeriz ? 'checked' : ''} style="margin-right: 8px;">${getItemIconDisplay('ceriz', '1.2em')} Baie Ceriz (100% SHINY!) [${gameState.inventory.ceriz}]</label></div>`; encounterDiv.innerHTML = `<div style="text-align: center; padding: 30px; background: linear-gradient(180deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3)); border-radius: 15px;">${statusBadge}<div style="font-size: 1.3em; font-weight: bold; margin-bottom: 15px; color: white;">${currentPokemon.rarity === 'legendary' ? '⚡ POKÉMON LÉGENDAIRE ⚡' : currentPokemon.rarity === 'super_rare' ? '💎 SUPER RARE 💎' : currentPokemon.rarity === 'rare' ? '⭐ RARE ⭐' : currentPokemon.rarity === 'uncommon' ? '🔵 PEU COMMUN 🔵' : '⚪ COMMUN ⚪'}</div><div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 15px;"><img class="encounter-sprite" src="${getAnimatedSpriteUrl(currentPokemon.id, currentPokemon.isShiny)}" style="width: 150px; height: 150px; min-width: 150px; min-height: 150px; max-width: 150px; max-height: 150px; image-rendering: pixelated; ${currentPokemon.isShiny ? 'filter: drop-shadow(0 0 20px #FFD700);' : ''}; object-fit: contain; object-position: center; display: block; margin: 0 auto;" alt="${currentPokemon.name}"></div><div style="font-size: 1.5em; font-weight: bold; margin: 10px 0; color: ${currentPokemon.isShiny ? '#FFD700' : 'white'};"> ${currentPokemon.isShiny ? '✨ ' : ''}${currentPokemon.name}${currentPokemon.isShiny ? ' ✨' : ''}</div><div style="font-size: 0.9em; color: rgba(255,255,255,0.7); margin-bottom: 20px;">#${currentPokemon.id.toString().padStart(3, '0')} • ${POKEMON_TYPES[currentPokemon.id]?.join(' / ') || 'Normal'}</div>${berriesHTML}<div id="ball-selector" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">${gameState.inventory.pokeball > 0 ? `<button onclick="startCaptureMinigame('pokeball')" style="background: linear-gradient(135deg, #ef4444, #f97316); padding: 10px 20px; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">${getItemIconDisplay('pokeball', '1.2em')} Poké Ball (${gameState.inventory.pokeball})<br><span style="font-size: 0.8em;">${Math.round(calculateCaptureRate('pokeball', currentPokemon.rarity, usingFramby) * 100)}%</span></button>` : ''}${gameState.inventory.greatball > 0 ? `<button onclick="startCaptureMinigame('greatball')" style="background: linear-gradient(135deg, #3b82f6, #2563eb); padding: 10px 20px; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">${getItemIconDisplay('greatball', '1.2em')} Super Ball (${gameState.inventory.greatball})<br><span style="font-size: 0.8em;">${Math.round(calculateCaptureRate('greatball', currentPokemon.rarity, usingFramby) * 100)}%</span></button>` : ''}${gameState.inventory.ultraball > 0 ? `<button onclick="startCaptureMinigame('ultraball')" style="background: linear-gradient(135deg, #eab308, #f59e0b); padding: 10px 20px; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">${getItemIconDisplay('ultraball', '1.2em')} Hyper Ball (${gameState.inventory.ultraball})<br><span style="font-size: 0.8em;">${Math.round(calculateCaptureRate('ultraball', currentPokemon.rarity, usingFramby) * 100)}%</span></button>` : ''}${gameState.inventory.masterball > 0 ? `<button onclick="startCaptureMinigame('masterball')" style="background: linear-gradient(135deg, #9333ea, #ec4899); padding: 10px 20px; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">${getItemIconDisplay('masterball', '1.2em')} Master Ball (${gameState.inventory.masterball})<br><span style="font-size: 0.8em;">100%</span></button>` : ''}${gameState.inventory.diveball > 0 ? `<button onclick="startCaptureMinigame('diveball')" style="background: linear-gradient(135deg, #0ea5e9, #06b6d4); padding: 10px 20px; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">${getItemIconDisplay('diveball', '1.2em')} Scuba Ball (${gameState.inventory.diveball})<br><span style="font-size: 0.8em;">${Math.round(calculateCaptureRate('diveball', currentPokemon.rarity, usingFramby) * 100)}%</span></button>` : ''}</div><button onclick="fleePokemon()" class="btn btn--outline" style="padding: 10px 20px; font-size: 1em; background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444;">🏃 Fuir</button></div>`; captureCooldown = Date.now() + 3000; updateCooldownDisplay(); }
 
 // ===== ARCHITECTURE V7.0 GENESIS - SYSTÈME DE FUITE BINAIRE =====
 /**
@@ -10096,6 +10096,18 @@ function handleCaptureSuccess(pokemon, ballType, skillBonus) {
     gameState.totalSuccessfulCaptures++;
     const wasDuplicate = isDuplicate(pokemon.id, pokemon.isShiny);
 
+    // === Défensif : nettoyer l'état logique en PREMIER pour éviter la recapture
+    const encounterDiv = document.getElementById('encounter');
+    const _hadPinap = usingPinap; // sauvegarder avant reset
+    currentPokemon = null;
+    usingFramby = false;
+    usingPinap = false;
+    usingCeriz = false;
+    if (encounterDiv) {
+        encounterDiv.querySelectorAll('button').forEach(btn => { btn.disabled = true; });
+    }
+    setTimeout(() => resetEncounterToIdle(), 2000);
+
     // Dialogues narratifs
     if (!wasDuplicate && gameState.totalCaught === 1 && !gameState.system.narrativeFlags.includes('guide_first_capture_shown')) {
         gameState.system.narrativeFlags.push('guide_first_capture_shown');
@@ -10109,7 +10121,7 @@ function handleCaptureSuccess(pokemon, ballType, skillBonus) {
 
     // Récompenses
     let coinsEarned = (GAME_CONFIG.coinsPerCapture || { common: 55, uncommon: 120, rare: 400, super_rare: 800, legendary: 2500 })[pokemon.rarity];
-    if (usingPinap) coinsEarned *= 2;
+    if (_hadPinap) coinsEarned *= 2;
     const xpGained = gainXP(pokemon.rarity, wasDuplicate);
 
     gameState.coins += coinsEarned;
@@ -10157,9 +10169,9 @@ function handleCaptureSuccess(pokemon, ballType, skillBonus) {
     }
 
     // ===== Animation : Le sprite rentre dans une Pokéball =====
-    const encounterDiv = document.getElementById('encounter');
+    try {
     if (encounterDiv) {
-        const pokemonSprite = encounterDiv.querySelector('img[src*="pokemon"]');
+        const pokemonSprite = encounterDiv.querySelector('.encounter-sprite');
         if (pokemonSprite) {
             // Créer une Pokéball au centre
             const pokeball = document.createElement('img');
@@ -10196,22 +10208,19 @@ function handleCaptureSuccess(pokemon, ballType, skillBonus) {
             }, 1200);
         }
     }
+    } catch (e) { console.warn('Animation capture failed:', e); }
 
     // Effets visuels
-    if (window.FX && encounterDiv) {
-        FX.shockwave(encounterDiv);
-        if (pokemon.isShiny || pokemon.rarity === 'legendary') {
-            FX.confetti(window.innerWidth / 2, window.innerHeight / 2, 100);
-            FX.stars(window.innerWidth / 2, window.innerHeight / 2, 30);
-            FX.screenShake();
+    try {
+        if (window.FX && typeof window.FX.shockwave === 'function' && encounterDiv) {
+            FX.shockwave(encounterDiv);
+            if (pokemon.isShiny || pokemon.rarity === 'legendary') {
+                if (typeof window.FX.confetti === 'function') FX.confetti(window.innerWidth / 2, window.innerHeight / 2, 100);
+                if (typeof window.FX.stars === 'function') FX.stars(window.innerWidth / 2, window.innerHeight / 2, 30);
+                if (typeof window.FX.screenShake === 'function') FX.screenShake();
+            }
         }
-    }
-
-    // Nettoyage
-    currentPokemon = null;
-    usingFramby = false;
-    usingPinap = false;
-    usingCeriz = false;
+    } catch (e) { console.warn('FX capture failed:', e); }
 
     updateQuestProgress('captures', 1);
     updateQuestProgress('coins', coinsEarned);
@@ -10227,7 +10236,6 @@ function handleCaptureSuccess(pokemon, ballType, skillBonus) {
 
     saveGame();
     updateUI();
-    setTimeout(() => resetEncounterToIdle(), 2000);
 }
 
 // Appeler updatePorygonVisuals au chargement et après chaque capture
@@ -11327,6 +11335,8 @@ window.switchPage = function (pageName) {
             console.error('❌ renderBossBattlePage n\'est pas une fonction!', typeof renderBossBattlePage);
         }
     }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    if (targetPage) targetPage.scrollTop = 0;
 }
 function renderBuddyHomeDisplay() {
     const container = document.getElementById('buddy-home-display');
