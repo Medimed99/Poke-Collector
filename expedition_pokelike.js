@@ -248,7 +248,7 @@
                 });
                 if (ko) {
                     if (onLog) onLog(`${action.def.name} est K.O. !`);
-                    if (action.side === 'enemy') enemyIdx = nextAliveIndex(enemies, enemyIdx + 1);
+                    if (action.side === 'player') enemyIdx = nextAliveIndex(enemies, enemyIdx + 1);
                     else playerIdx = nextAliveIndex(team, playerIdx + 1);
                     break;
                 }

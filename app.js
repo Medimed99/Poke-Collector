@@ -11305,7 +11305,7 @@ window.switchPage = function (pageName) {
     if (pageName === 'pokedex') { switchPokedexRegion(gameState.pokedexRegion || 'Kanto'); renderPokedexGrid(); }
     if (pageName === 'shop') renderShop();
     if (pageName === 'home' && window.initBlindBoxGift3D) { setTimeout(() => window.initBlindBoxGift3D(), 100); }
-    if (pageName === 'capture' && window.initFishingWave3D) { setTimeout(() => window.initFishingWave3D(), 100); }
+    if (pageName === 'capture') { renderCaptureHistory(); if (window.initFishingWave3D) setTimeout(() => window.initFishingWave3D(), 100); }
     if (pageName === 'quests') { renderAllQuests(); if (!gameState.system.narrativeFlags.includes('guide_quests_shown')) { gameState.system.narrativeFlags.push('guide_quests_shown'); setTimeout(() => triggerNarrative('guide_quests'), 1000); } }
     if (pageName === 'inventory') renderInventory();
     if (pageName === 'profile') { updateUI(); updateProfileStats(); renderRegionsProgress(); const profileNavItem = document.querySelectorAll('.nav-item')[6]; if (profileNavItem) { const existingBadge = profileNavItem.querySelector('.collection-notif-badge'); if (existingBadge) existingBadge.remove(); } }
@@ -11410,9 +11410,15 @@ function renderCaptureHistory() {
     container.innerHTML = gameState.captureHistory.slice(0, 10).map(entry => {
         if (!entry) return '';
         const statusColor = entry.status === 'captured' ? '#4ade80' : '#ef4444';
-        const statusText = entry.status === 'captured' ? 'Capturé' : 'Enfui';
-        const shinyStyle = entry.isShiny ? 'style="background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: shinyText 2s linear infinite;"' : '';
-        return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 5px;"><span style="color: ${rarityColors[entry.rarity] || '#9ca3af'}; font-weight: bold;" ${shinyStyle}>${entry.isShiny ? '✨ ' : ''}${entry.name || 'Inconnu'}${entry.isShiny ? ' ✨' : ''}</span><div style="font-size: 0.9em; color: ${statusColor}; font-weight: bold;">${statusText}</div></div>`;
+        const statusIcon = entry.status === 'captured' ? '✅' : '💨';
+        const rarityColor = rarityColors[entry.rarity] || '#9ca3af';
+        const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${entry.id}.png`;
+        const shinyBadge = entry.isShiny ? '<span style="color:#FFD700;font-size:0.8em;">✨</span>' : '';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(255,255,255,0.05);border-radius:8px;margin-bottom:5px;">
+            <img src="${spriteUrl}" style="width:36px;height:36px;image-rendering:pixelated;flex-shrink:0;" onerror="this.style.display='none'">
+            <span style="flex:1;color:${rarityColor};font-weight:bold;">${shinyBadge}${entry.name || 'Inconnu'}</span>
+            <span style="font-size:0.9em;color:${statusColor};font-weight:bold;">${statusIcon}</span>
+        </div>`;
     }).join('') || '<p style="text-align: center; color: #666; padding: 20px;">Aucune rencontre récente</p>';
 }
 function renderFishingHistory() { const container = document.getElementById('fishing-history'); if (!container) return; const rarityColors = { common: '#9ca3af', uncommon: '#3b82f6', rare: '#8b5cf6', super_rare: '#ec4899', legendary: '#f59e0b' }; container.innerHTML = (gameState.fishingHistory || []).slice(0, 10).map(entry => { const statusColor = entry.status === 'captured' ? '#4ade80' : '#ef4444'; const statusText = entry.status === 'captured' ? 'Capturé' : 'Enfui'; const shinyStyle = entry.isShiny ? 'style="background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: shinyText 2s linear infinite;"' : ''; return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 5px;"><span style="color: ${rarityColors[entry.rarity]}; font-weight: bold;" ${shinyStyle}>${entry.isShiny ? '✨ ' : ''}${entry.name}${entry.isShiny ? ' ✨' : ''}</span><div style="font-size: 0.9em; color: ${statusColor}; font-weight: bold;">${statusText}</div></div>`; }).join('') || '<p style="text-align: center; color: #666;">Aucune pêche récente</p>'; }
@@ -16201,39 +16207,27 @@ function updateProfileDisplay() {
         }
     }
 
-    // Afficher les icônes crayon si des éléments non-défaut sont débloqués
+    // Toujours afficher les icônes crayon (accessible dès le départ)
     const iconEditEl = profilePage.querySelector('[onclick*="openCustomizationEditor(\'icon\')"]');
-    if (iconEditEl) iconEditEl.style.display = hasUnlockedIcons ? 'flex' : 'none';
+    if (iconEditEl) iconEditEl.style.display = 'flex';
 
     const xpBarEditEl = document.getElementById('xp-bar-edit-btn');
     if (xpBarEditEl) {
-        // Initialiser unlockedXpBars si nécessaire
         if (!gameState.customization) gameState.customization = {};
         if (!Array.isArray(gameState.customization.unlockedXpBars)) {
             gameState.customization.unlockedXpBars = ['classic_blue'];
         }
-
-        // On sort le bouton du flux normal
         xpBarEditEl.style.position = 'absolute';
-        xpBarEditEl.style.right = '10px'; // Collé à droite du conteneur global
+        xpBarEditEl.style.right = '10px';
         xpBarEditEl.style.top = '50%';
         xpBarEditEl.style.transform = 'translateY(-50%)';
-        xpBarEditEl.style.zIndex = '100'; // Au-dessus de tout
-        xpBarEditEl.style.background = 'rgba(0,0,0,0.6)'; // Fond sombre pour lisibilité
-
-        // On vérifie si on a débloqué d'autres barres que celle par défaut
-        const hasUnlockedSkins = gameState.customization.unlockedXpBars.length > 1;
-
-        // Condition : Niveau 10+ OU Skins débloqués
-        if (gameState.level >= 10 || hasUnlockedSkins) {
-            xpBarEditEl.style.display = 'flex'; // Flex pour centrer l'icône
-        } else {
-            xpBarEditEl.style.display = 'none';
-        }
+        xpBarEditEl.style.zIndex = '100';
+        xpBarEditEl.style.background = 'rgba(0,0,0,0.6)';
+        xpBarEditEl.style.display = 'flex';
     }
 
     const bgEditEl = profilePage.querySelector('[onclick*="openCustomizationEditor(\'background\')"]');
-    if (bgEditEl) bgEditEl.style.display = hasUnlockedBackgrounds ? 'flex' : 'none';
+    if (bgEditEl) bgEditEl.style.display = 'flex';
 
     // Afficher l'icône d'édition de titre si des titres sont débloqués (IMPORTANT: après toutes les vérifications)
     if (titleEditEl) {
@@ -22082,8 +22076,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (gameState.introSeen) {
             // Vérifier l'intégrité du système
             checkSystemIntegrity();
-            // Mettre à jour l'effet visuel selon l'intégrité
-            updateSystemVisuals();
+            // Mettre à jour l'effet visuel selon le niveau et les captures (nouvelle logique)
+            updateSystemVisualState();
         } else {
             // Pendant l'intro, retirer toutes les classes de glitch
             document.body.classList.remove('system-critical', 'system-unstable', 'system-stable', 'system-optimized', 'system-advanced');
