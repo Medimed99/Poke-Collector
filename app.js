@@ -10168,46 +10168,22 @@ function handleCaptureSuccess(pokemon, ballType, skillBonus) {
         showToast(`${message}\n${pokemon.name}\n+${coinsEarned} coins\n+${xpGained} XP`, 'success');
     }
 
-    // ===== Animation : Le sprite rentre dans une Pokéball =====
+    // ===== Animation Pokéball : overlay fixe sur le viewport =====
     try {
-    if (encounterDiv) {
-        const pokemonSprite = encounterDiv.querySelector('.encounter-sprite');
-        if (pokemonSprite) {
-            // Créer une Pokéball au centre
-            const pokeball = document.createElement('img');
-            pokeball.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png`;
-            pokeball.style.cssText = `
-                position: absolute;
-                top: 40%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                width: 80px;
-                height: 80px;
-                z-index: 1000;
-                image-rendering: pixelated;
-                opacity: 0;
-                transition: opacity 0.2s;
-            `;
-            encounterDiv.style.position = 'relative';
-            encounterDiv.appendChild(pokeball);
-
-            // Animation : le sprite se réduit et rentre dans la Pokéball
-            pokemonSprite.style.transition = 'all 0.5s ease-in-out';
-            pokemonSprite.style.transform = 'scale(0) translateY(-50px)';
-            pokemonSprite.style.opacity = '0';
-
-            // Afficher la Pokéball
-            setTimeout(() => {
-                pokeball.style.opacity = '1';
-                pokeball.style.animation = 'pokeballShake 0.3s ease-in-out 3';
-            }, 300);
-
-            // Nettoyer après l'animation
-            setTimeout(() => {
-                pokeball.remove();
-            }, 1200);
-        }
-    }
+        const ballSprite = ballType === 'greatball' ? 'great-ball' : ballType === 'ultraball' ? 'ultra-ball' : ballType === 'masterball' ? 'master-ball' : ballType === 'diveball' ? 'dive-ball' : 'poke-ball';
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9500;pointer-events:none;display:flex;align-items:center;justify-content:center;';
+        const pokeballImg = document.createElement('img');
+        pokeballImg.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${ballSprite}.png`;
+        pokeballImg.style.cssText = 'width:90px;height:90px;image-rendering:pixelated;animation:pokeballShake 0.35s ease-in-out 3;';
+        overlay.appendChild(pokeballImg);
+        document.body.appendChild(overlay);
+        // Fade out puis suppression
+        setTimeout(() => { overlay.style.transition = 'opacity 0.3s'; overlay.style.opacity = '0'; }, 1000);
+        setTimeout(() => overlay.remove(), 1400);
+        // Masquer le sprite dans le encounter div si présent
+        const sprite = document.querySelector('.encounter-sprite');
+        if (sprite) { sprite.style.transition = 'transform 0.4s,opacity 0.4s'; sprite.style.transform = 'scale(0)'; sprite.style.opacity = '0'; }
     } catch (e) { console.warn('Animation capture failed:', e); }
 
     // Effets visuels
@@ -11622,7 +11598,17 @@ function init3DPokeball(containerId, message = 'Un Pokémon apparaît...') {
 function resetEncounterToIdle() {
     const encounterDiv = document.getElementById('encounter');
     if (!encounterDiv) return;
-    init3DPokeball('encounter', '');
+    // Toujours nettoyer le contenu d'abord (évite que le Pokémon reste affiché)
+    encounterDiv.innerHTML = '';
+    encounterDiv.style.transition = '';
+    encounterDiv.style.opacity = '';
+    encounterDiv.style.transform = '';
+    if (typeof THREE !== 'undefined') {
+        init3DPokeball('encounter', '');
+    } else {
+        // Fallback statique si Three.js non disponible
+        encounterDiv.innerHTML = `<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='95' fill='%23ee1515'/%3E%3Ccircle cx='100' cy='100' r='95' fill='none' stroke='%23000' stroke-width='5'/%3E%3Crect x='0' y='95' width='200' height='10' fill='%23000'/%3E%3Ccircle cx='100' cy='100' r='60' fill='white'/%3E%3Ccircle cx='100' cy='100' r='60' fill='none' stroke='%23000' stroke-width='5'/%3E%3Ccircle cx='100' cy='100' r='30' fill='white'/%3E%3Ccircle cx='100' cy='100' r='30' fill='none' stroke='%23000' stroke-width='5'/%3E%3Ccircle cx='100' cy='100' r='15' fill='%23000'/%3E%3C/svg%3E" style="width:200px;height:200px;">`;
+    }
 }
 function checkBlindBoxReset() { const now = Date.now(); const lastReset = gameState.lastReset || Date.now(); const dayInMs = 24 * 60 * 60 * 1000; if (now - lastReset >= dayInMs) { gameState.blindBoxUsed = 0; gameState.lastReset = now; gameState.blindBoxResetTime = null; saveGame(); return true; } return false; }
 function updateBlindBoxTimer() { checkBlindBoxReset(); const remaining = gameState.blindBoxSlots - gameState.blindBoxUsed; if (remaining === 5) { gameState.blindBoxResetTime = null; saveGame(); } if (gameState.blindBoxResetTime && Date.now() >= gameState.blindBoxResetTime) { gameState.blindBoxUsed = 0; gameState.blindBoxResetTime = null; gameState.lastReset = Date.now(); showToast('🎁 Vos Blind Box sont rechargées !', 'success'); saveGame(); } const timerEl = document.getElementById('blindbox-timer'); if (timerEl && gameState.blindBoxResetTime) { const remainingMs = gameState.blindBoxResetTime - Date.now(); if (remainingMs > 0) { const hours = Math.floor(remainingMs / (60 * 60 * 1000)); const minutes = Math.floor((remainingMs % (60 * 60 * 1000)) / (60 * 1000)); timerEl.textContent = `Recharge dans : ${hours}h ${minutes}m`; timerEl.style.display = 'block'; } else { timerEl.style.display = 'none'; } } else if (timerEl) { timerEl.style.display = 'none'; } }

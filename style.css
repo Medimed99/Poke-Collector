@@ -7436,13 +7436,12 @@ body:has(#poker-page.active) nav.new-bottom-nav {
 
 /* Glitch "CRITIQUE" (Niveau 1 - Boot) - Glitch Fort avec cycle intermittent */
 body.system-critical {
-    animation: glitch-cycle 4s infinite;
-    filter: contrast(120%) hue-rotate(90deg) saturate(1.3);
+    /* Pas de filter/animation sur body : évite le stacking context qui casse position:fixed */
 }
 
 body.system-critical .app-container {
     animation: glitch-cycle 4s infinite;
-    filter: contrast(120%) hue-rotate(90deg);
+    filter: contrast(120%) hue-rotate(90deg) saturate(1.3);
 }
 
 /* Cycle de glitch : 1-2 secondes normal, puis 1-2 secondes de glitch */
@@ -7526,13 +7525,13 @@ body.system-critical .app-container {
 
 /* Glitch "INSTABLE" (Niveau 2-4) - Glitch Moyen */
 body.system-unstable {
-    animation: none; /* Pas d'animation sur le body */
-    filter: sepia(30%) hue-rotate(-15deg) contrast(1.15);
+    animation: none;
+    /* Pas de filter sur body : évite le stacking context qui casse position:fixed */
 }
 
 body.system-unstable .app-container {
     animation: none;
-    filter: sepia(20%) hue-rotate(-10deg);
+    filter: sepia(30%) hue-rotate(-15deg) contrast(1.15);
 }
 
 body.system-unstable .porygon-widget {
