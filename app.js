@@ -10172,7 +10172,7 @@ function handleCaptureSuccess(pokemon, ballType, skillBonus) {
     try {
         const ballSprite = ballType === 'greatball' ? 'great-ball' : ballType === 'ultraball' ? 'ultra-ball' : ballType === 'masterball' ? 'master-ball' : ballType === 'diveball' ? 'dive-ball' : 'poke-ball';
         const overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9500;pointer-events:none;display:flex;align-items:center;justify-content:center;';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:999999;pointer-events:none;display:flex;align-items:center;justify-content:center;';
         const pokeballImg = document.createElement('img');
         pokeballImg.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${ballSprite}.png`;
         pokeballImg.style.cssText = 'width:90px;height:90px;image-rendering:pixelated;animation:pokeballShake 0.35s ease-in-out 3;';
