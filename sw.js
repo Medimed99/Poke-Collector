@@ -59,6 +59,14 @@ self.addEventListener('activate', (event) => {
       console.log('[SW] Service Worker activated');
       return self.clients.claim(); // Prendre le contrôle immédiatement
     })
+    .then(() => {
+      // Notifier tous les onglets ouverts qu'une nouvelle version est active
+      self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ type: 'SW_UPDATED', version: CACHE_VERSION });
+        });
+      });
+    })
   );
 });
 

@@ -2026,6 +2026,21 @@
                     .catch((error) => {
                         console.warn('❌ Service Worker registration failed:', error);
                     });
+
+                // Écouter le message SW_UPDATED envoyé par le nouveau SW après activation
+                navigator.serviceWorker.addEventListener('message', (event) => {
+                    if (event.data && event.data.type === 'SW_UPDATED') {
+                        // Afficher une bannière de mise à jour
+                        const banner = document.createElement('div');
+                        banner.id = 'sw-update-banner';
+                        banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#10b981;color:white;padding:12px 20px;border-radius:12px;z-index:999999;display:flex;align-items:center;gap:12px;font-family:monospace;font-weight:bold;box-shadow:0 4px 20px rgba(0,0,0,0.5);';
+                        banner.innerHTML = '🔄 Mise à jour disponible ! <button onclick="window.location.reload()" style="background:white;color:#10b981;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:bold;">Recharger</button>';
+                        // Ne pas afficher si déjà présent
+                        if (!document.getElementById('sw-update-banner')) {
+                            document.body.appendChild(banner);
+                        }
+                    }
+                });
             });
         }
     </script>
