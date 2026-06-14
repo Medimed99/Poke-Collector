@@ -10120,7 +10120,7 @@ function handleCaptureSuccess(pokemon, ballType, skillBonus) {
     // La stabilisation à 3 captures est gérée par updateSystemStabilityDisplay (appelé via updateUI)
 
     // Récompenses
-    let coinsEarned = (GAME_CONFIG.coinsPerCapture || { common: 55, uncommon: 120, rare: 400, super_rare: 800, legendary: 2500 })[pokemon.rarity];
+    let coinsEarned = (EXPEDITION_CONFIG.coinsPerCapture || { common: 55, uncommon: 120, rare: 400, super_rare: 800, legendary: 2500 })[pokemon.rarity];
     if (_hadPinap) coinsEarned *= 2;
     const xpGained = gainXP(pokemon.rarity, wasDuplicate);
 
@@ -10295,7 +10295,7 @@ window.attemptFishingCapture = function (ballType) {
         if (typeof triggerAmbientNarrative === 'function') {
             triggerAmbientNarrative('fishing_success', { pokemon: currentFishingPokemon.name });
         }
-        let coinsEarned = (GAME_CONFIG.coinsPerCapture || { common: 55, uncommon: 120, rare: 400, super_rare: 800, legendary: 2500 })[currentFishingPokemon.rarity]; if (usingPinapFishing) coinsEarned *= 2; gameState.coins += coinsEarned; gameState.totalCoinsEarned += coinsEarned; updateQuestProgress('coins', coinsEarned); const xpGained = gainXP(currentFishingPokemon.rarity, wasDuplicate); const fishingModal = document.querySelector('.fishing-modal'); if (window.FX && fishingModal) { FX.shockwave(fishingModal); if (currentFishingPokemon.isShiny || currentFishingPokemon.rarity === 'legendary') { FX.confetti(window.innerWidth / 2, window.innerHeight / 2, 100); FX.stars(window.innerWidth / 2, window.innerHeight / 2, 30); FX.screenShake(); } } if (currentFishingPokemon.isShiny && !wasDuplicate) { showToast(`✨ ${currentFishingPokemon.name} SHINY pêché!\n+${coinsEarned} coins\n+${xpGained} XP`, 'success'); updateQuestProgress('shinies', 1); } else { showToast(`✅ ${currentFishingPokemon.name} pêché!\n+${coinsEarned} coins\n+${xpGained} XP${wasDuplicate ? ' (doublon)' : ''}`, 'success'); } if (['rare', 'super_rare', 'legendary'].includes(currentFishingPokemon.rarity)) { updateQuestProgress('rare_captures', 1); } if (currentFishingPokemon.rarity === 'legendary') { updateQuestProgress('legendaries', 1); } gameState.fishingHistory.unshift({ id: currentFishingPokemon.id, name: currentFishingPokemon.name, isShiny: currentFishingPokemon.isShiny, rarity: currentFishingPokemon.rarity, status: 'captured', time: Date.now() }); if (gameState.fishingHistory.length > 10) gameState.fishingHistory = gameState.fishingHistory.slice(0, 10); renderFishingHistory();
+        let coinsEarned = (EXPEDITION_CONFIG.coinsPerCapture || { common: 55, uncommon: 120, rare: 400, super_rare: 800, legendary: 2500 })[currentFishingPokemon.rarity]; if (usingPinapFishing) coinsEarned *= 2; gameState.coins += coinsEarned; gameState.totalCoinsEarned += coinsEarned; updateQuestProgress('coins', coinsEarned); const xpGained = gainXP(currentFishingPokemon.rarity, wasDuplicate); const fishingModal = document.querySelector('.fishing-modal'); if (window.FX && fishingModal) { FX.shockwave(fishingModal); if (currentFishingPokemon.isShiny || currentFishingPokemon.rarity === 'legendary') { FX.confetti(window.innerWidth / 2, window.innerHeight / 2, 100); FX.stars(window.innerWidth / 2, window.innerHeight / 2, 30); FX.screenShake(); } } if (currentFishingPokemon.isShiny && !wasDuplicate) { showToast(`✨ ${currentFishingPokemon.name} SHINY pêché!\n+${coinsEarned} coins\n+${xpGained} XP`, 'success'); updateQuestProgress('shinies', 1); } else { showToast(`✅ ${currentFishingPokemon.name} pêché!\n+${coinsEarned} coins\n+${xpGained} XP${wasDuplicate ? ' (doublon)' : ''}`, 'success'); } if (['rare', 'super_rare', 'legendary'].includes(currentFishingPokemon.rarity)) { updateQuestProgress('rare_captures', 1); } if (currentFishingPokemon.rarity === 'legendary') { updateQuestProgress('legendaries', 1); } gameState.fishingHistory.unshift({ id: currentFishingPokemon.id, name: currentFishingPokemon.name, isShiny: currentFishingPokemon.isShiny, rarity: currentFishingPokemon.rarity, status: 'captured', time: Date.now() }); if (gameState.fishingHistory.length > 10) gameState.fishingHistory = gameState.fishingHistory.slice(0, 10); renderFishingHistory();
     } else { showToast(`❌ ${currentFishingPokemon.name} s'est échappé!`, 'error'); gameState.fishingHistory.unshift({ id: currentFishingPokemon.id, name: currentFishingPokemon.name, isShiny: currentFishingPokemon.isShiny, rarity: currentFishingPokemon.rarity, status: 'fled', time: Date.now() }); if (gameState.fishingHistory.length > 10) gameState.fishingHistory = gameState.fishingHistory.slice(0, 10); renderFishingHistory(); } currentFishingPokemon = null; usingFrambyFishing = false; usingPinapFishing = false; usingCerizFishing = false; saveGame(); updateUI();
 };
 
@@ -15481,23 +15481,26 @@ function updateBoosts() { const now = Date.now(); gameState.activeBoosts = gameS
 // Initialiser gameState.customization si nécessaire
 if (!gameState.customization) {
     gameState.customization = {
-        trainerName: null, // null = "Dresseur niveau X", sinon nom personnalisé
+        trainerName: null,
         selectedIcon: null,
         selectedXpBar: null,
         selectedBackground: null,
         selectedTitle: null,
         unlockedIcons: [],
-        unlockedXpBars: [],
+        unlockedXpBars: ['classic_blue'],
         unlockedBackgrounds: [],
         unlockedTitles: [],
-        unseenUnlocks: {
-            icons: [],
-            xpBars: [],
-            backgrounds: [],
-            titles: []
-        },
+        unseenUnlocks: { icons: [], xpBars: [], backgrounds: [], titles: [] },
         nameModalSeen: false
     };
+}
+// Defensive init : customization existe mais est partiel (vieilles saves sans ces champs)
+if (!Array.isArray(gameState.customization.unlockedIcons)) gameState.customization.unlockedIcons = [];
+if (!Array.isArray(gameState.customization.unlockedXpBars)) gameState.customization.unlockedXpBars = ['classic_blue'];
+if (!Array.isArray(gameState.customization.unlockedBackgrounds)) gameState.customization.unlockedBackgrounds = [];
+if (!Array.isArray(gameState.customization.unlockedTitles)) gameState.customization.unlockedTitles = [];
+if (!gameState.customization.unseenUnlocks || typeof gameState.customization.unseenUnlocks !== 'object') {
+    gameState.customization.unseenUnlocks = { icons: [], xpBars: [], backgrounds: [], titles: [] };
 }
 
 // Structures de données pour la personnalisation
@@ -15935,7 +15938,7 @@ window.openCustomizationEditor = function (category) {
             break;
         case 'title':
             items = CUSTOMIZATION_DATA.titles;
-            unlocked = gameState.customization.unlockedTitles;
+            unlocked = gameState.customization.unlockedTitles || [];
             selected = gameState.customization.selectedTitle || null;
             title = 'Titres Spéciaux';
             break;
@@ -16173,7 +16176,7 @@ function updateProfileDisplay() {
     const hasUnlockedIcons = _icons.length > 1 || (_icons.length === 1 && !_icons.includes('default'));
     const hasUnlockedXpBars = _xpBars.length > 1 || (_xpBars.length === 1 && !_xpBars.includes('classic_blue'));
     const hasUnlockedBackgrounds = _bgs.length > 1 || (_bgs.length === 1 && !_bgs.includes('default'));
-    const hasUnlockedTitles = gameState.customization.unlockedTitles.length > 0;
+    const hasUnlockedTitles = (gameState.customization.unlockedTitles || []).length > 0;
 
     // Mettre à jour le titre
     const titleEl = profilePage.querySelector('#profile-title');
