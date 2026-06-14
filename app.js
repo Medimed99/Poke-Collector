@@ -10272,30 +10272,10 @@ function handleCaptureFlee(pokemon) {
     saveGame();
     updateUI();
 
-    // Retour à l'idle après animation (plus court pour réactivité)
+    // Retour à l'idle après animation — resetEncounterToIdle gère lui-même le nettoyage des styles ET de innerHTML
     setTimeout(() => {
-        if (encounterDiv) {
-            encounterDiv.style.transition = '';
-            encounterDiv.style.opacity = '';
-            encounterDiv.style.transform = '';
-        }
-        // S'assurer que resetEncounterToIdle est appelé
-        if (typeof resetEncounterToIdle === 'function') {
-            resetEncounterToIdle();
-        } else {
-            // Fallback : réinitialiser manuellement
-            const spawnBtn = document.getElementById('spawn-btn');
-            const spawnBtnText = document.getElementById('spawn-btn-text');
-            if (spawnBtn) {
-                spawnBtn.disabled = false;
-                if (spawnBtnText) {
-                    spawnBtnText.innerHTML = `${getItemIconDisplay('pokeball', '1.2em')} Capturer un Pokémon`;
-                } else {
-                    spawnBtn.innerHTML = `${getItemIconDisplay('pokeball', '1.2em')} Capturer un Pokémon`;
-                }
-            }
-        }
-    }, 300);
+        resetEncounterToIdle();
+    }, 350);
 }
 
 window.fleePokemon = function () { if (!currentPokemon) return; showToast(`Vous avez fui ${currentPokemon.name}!`, 'info'); gameState.streak = 0; gameState.totalFlees++; updateQuestProgress('flees', 1); currentPokemon = null; usingFramby = false; usingPinap = false; usingCeriz = false; setTimeout(() => resetEncounterToIdle(), 1500); saveGame(); updateUI(); };
@@ -15067,6 +15047,14 @@ window.applySaveData = function (data) {
             if (gameState.customization.pwaModalSeen === undefined) {
                 gameState.customization.pwaModalSeen = false;
             }
+            // Defensive init : vieilles saves sans ces tableaux → crash dans openCustomizationEditor
+            if (!Array.isArray(gameState.customization.unlockedIcons)) gameState.customization.unlockedIcons = [];
+            if (!Array.isArray(gameState.customization.unlockedXpBars)) gameState.customization.unlockedXpBars = ['classic_blue'];
+            if (!Array.isArray(gameState.customization.unlockedBackgrounds)) gameState.customization.unlockedBackgrounds = [];
+            if (!Array.isArray(gameState.customization.unlockedTitles)) gameState.customization.unlockedTitles = [];
+            if (!gameState.customization.unseenUnlocks || typeof gameState.customization.unseenUnlocks !== 'object') {
+                gameState.customization.unseenUnlocks = { icons: [], xpBars: [], backgrounds: [], titles: [] };
+            }
         }
         if (data.rogue) {
             if (!gameState.rogue) gameState.rogue = {};
@@ -15786,8 +15774,13 @@ const CUSTOMIZATION_DATA = {
 
 // Fonction pour vérifier et débloquer les éléments
 function checkAndUnlockCustomization() {
+    // Defensive init : vieilles saves sans ces champs
+    if (!Array.isArray(gameState.customization.unlockedIcons)) gameState.customization.unlockedIcons = [];
+    if (!Array.isArray(gameState.customization.unlockedXpBars)) gameState.customization.unlockedXpBars = ['classic_blue'];
+    if (!Array.isArray(gameState.customization.unlockedBackgrounds)) gameState.customization.unlockedBackgrounds = [];
+    if (!Array.isArray(gameState.customization.unlockedTitles)) gameState.customization.unlockedTitles = [];
     // Initialiser unseenUnlocks si nécessaire
-    if (!gameState.customization.unseenUnlocks) {
+    if (!gameState.customization.unseenUnlocks || typeof gameState.customization.unseenUnlocks !== 'object') {
         gameState.customization.unseenUnlocks = {
             icons: [],
             xpBars: [],
@@ -15924,19 +15917,19 @@ window.openCustomizationEditor = function (category) {
     switch (category) {
         case 'icon':
             items = CUSTOMIZATION_DATA.icons;
-            unlocked = gameState.customization.unlockedIcons;
+            unlocked = gameState.customization.unlockedIcons || [];
             selected = gameState.customization.selectedIcon || 'default';
             title = 'Icônes de Dresseur';
             break;
         case 'xpbar':
             items = CUSTOMIZATION_DATA.xpBars;
-            unlocked = gameState.customization.unlockedXpBars;
+            unlocked = gameState.customization.unlockedXpBars || ['classic_blue'];
             selected = gameState.customization.selectedXpBar || 'classic_blue';
             title = 'Barres d\'XP';
             break;
         case 'background':
             items = CUSTOMIZATION_DATA.backgrounds;
-            unlocked = gameState.customization.unlockedBackgrounds;
+            unlocked = gameState.customization.unlockedBackgrounds || [];
             selected = gameState.customization.selectedBackground || 'default';
             title = 'Backgrounds de Profil';
             break;
@@ -16174,9 +16167,12 @@ function updateProfileDisplay() {
     }
 
     // Afficher les icônes crayon seulement si des éléments non-défaut sont débloqués
-    const hasUnlockedIcons = gameState.customization.unlockedIcons.length > 1 || (gameState.customization.unlockedIcons.length === 1 && !gameState.customization.unlockedIcons.includes('default'));
-    const hasUnlockedXpBars = gameState.customization.unlockedXpBars.length > 1 || (gameState.customization.unlockedXpBars.length === 1 && !gameState.customization.unlockedXpBars.includes('classic_blue'));
-    const hasUnlockedBackgrounds = gameState.customization.unlockedBackgrounds.length > 1 || (gameState.customization.unlockedBackgrounds.length === 1 && !gameState.customization.unlockedBackgrounds.includes('default'));
+    const _icons = gameState.customization.unlockedIcons || [];
+    const _xpBars = gameState.customization.unlockedXpBars || ['classic_blue'];
+    const _bgs = gameState.customization.unlockedBackgrounds || [];
+    const hasUnlockedIcons = _icons.length > 1 || (_icons.length === 1 && !_icons.includes('default'));
+    const hasUnlockedXpBars = _xpBars.length > 1 || (_xpBars.length === 1 && !_xpBars.includes('classic_blue'));
+    const hasUnlockedBackgrounds = _bgs.length > 1 || (_bgs.length === 1 && !_bgs.includes('default'));
     const hasUnlockedTitles = gameState.customization.unlockedTitles.length > 0;
 
     // Mettre à jour le titre
