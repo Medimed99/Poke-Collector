@@ -10072,7 +10072,7 @@ window.attemptCapture = function (ballType, skillBonus = 1.0) {
         }
 
         // Safety Net 2: Buddy Protector
-        if (checkBuddyProtector && typeof checkBuddyProtector === 'function') {
+        if (typeof checkBuddyProtector === 'function') {
             if (checkBuddyProtector()) {
                 if (typeof consumeBuddyProtector === 'function') {
                     consumeBuddyProtector();
@@ -22213,7 +22213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => {
         saveGame();
     }, 30000);
-    console.log('%c✨ V10.0 BUILD 2026-06-14 [EXPEDITION_CONFIG + CUSTOMIZATION FIX] ✨', 'color:#4ade80;font-size:16px;font-weight:bold;background:#111;padding:4px 8px;border-radius:4px;');
+    console.log('%c✨ V10.0 BUILD 2026-06-14-B [BUDDY_PROTECTOR REFERR FIX] ✨', 'color:#f87171;font-size:16px;font-weight:bold;background:#111;padding:4px 8px;border-radius:4px;');
 
     // Mettre à jour les icônes de ressources dans le header
     const coinsIcon = document.getElementById('coins-icon');

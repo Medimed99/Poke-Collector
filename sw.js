@@ -3,7 +3,7 @@
    ========================================== */
 
 // Version du cache - incrémenter pour forcer la mise à jour
-const CACHE_VERSION = 'v5';
+const CACHE_VERSION = 'v6';
 const CACHE_NAME = `pokemon-collector-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `pokemon-collector-runtime-${CACHE_VERSION}`;
 
