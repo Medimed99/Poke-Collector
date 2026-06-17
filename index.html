@@ -1082,6 +1082,18 @@
         </div>
     </div>
 
+    <!-- BARRE D'INTÉGRITÉ DU MONDE (Phase 1) -->
+    <div id="world-integrity-bar" style="display:none;">
+        <span id="world-integrity-title" class="wi-label">RESTAURATION EN COURS</span>
+        <div class="wi-track">
+            <div id="world-integrity-fill" class="wi-fill"></div>
+        </div>
+        <span id="world-integrity-pct" class="wi-pct">0%</span>
+    </div>
+
+    <!-- PANNEAU 3 OBJECTIFS (Phase 1) -->
+    <div id="objectives-panel" style="display:none;"></div>
+
     <!-- PAGE: BLIND BOX -->
     <div id="home-page" class="page active">
         <div class="container">
@@ -1744,6 +1756,8 @@
     <script src="pwa_ui.js"></script>
     <!-- 🎮 GAMEMASTER — Panel de debug développeur (7 taps pour activer, ou ?gm=1 dans l'URL) -->
     <script src="gamemaster.js"></script>
+    <!-- STORYTELLING ENGINE — Arc narratif, intégrité, objectifs (Phases 1-6) -->
+    <script src="storytelling.js"></script>
 
     <!-- POKÉ-POKER GAME SCRIPT - Code complet fourni par l'utilisateur -->
     <script>

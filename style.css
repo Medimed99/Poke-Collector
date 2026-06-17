@@ -8411,3 +8411,317 @@ img, canvas, video {
     .pl-sidebar--right { order: 3; }
     .pl-team-list { min-height: auto; }
 }
+
+/* =====================================================
+   STORYTELLING ENGINE — PHASE 1 : BARRE D'INTÉGRITÉ
+   ===================================================== */
+
+#world-integrity-bar {
+    position: sticky;
+    top: 60px;
+    z-index: 99;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    background: rgba(5, 5, 20, 0.92);
+    border-bottom: 1px solid rgba(0, 255, 157, 0.2);
+    backdrop-filter: blur(4px);
+    min-height: 26px;
+}
+
+.wi-label {
+    font-family: 'Share Tech Mono', 'VT323', monospace;
+    font-size: 0.62em;
+    color: rgba(0, 255, 157, 0.85);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    min-width: 160px;
+}
+
+.wi-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.wi-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 4px;
+    transition: width 0.8s ease, background 0.6s ease;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.wi-pct {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68em;
+    color: rgba(255, 255, 255, 0.75);
+    min-width: 36px;
+    text-align: right;
+}
+
+@media (max-width: 480px) {
+    .wi-label { min-width: 100px; font-size: 0.55em; }
+    #world-integrity-bar { padding: 3px 8px; gap: 6px; }
+}
+
+/* =====================================================
+   PHASE 1 : PANNEAU 3 OBJECTIFS
+   ===================================================== */
+
+#objectives-panel {
+    position: fixed;
+    bottom: 70px;
+    right: 10px;
+    z-index: 800;
+    width: 220px;
+    background: rgba(8, 10, 25, 0.93);
+    border: 1px solid rgba(0, 255, 157, 0.25);
+    border-radius: 10px;
+    overflow: hidden;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    font-family: 'Share Tech Mono', monospace;
+}
+
+.obj-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 10px;
+    background: rgba(0, 255, 157, 0.08);
+    cursor: pointer;
+    user-select: none;
+}
+
+.obj-title {
+    font-size: 0.68em;
+    color: rgba(0, 255, 157, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.obj-toggle-icon {
+    font-size: 0.6em;
+    color: rgba(0, 255, 157, 0.6);
+}
+
+.obj-body {
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.obj-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.obj-icon {
+    font-size: 0.85em;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+.obj-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.obj-label {
+    font-size: 0.63em;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.obj-sub {
+    font-size: 0.55em;
+    color: rgba(255, 255, 255, 0.45);
+    line-height: 1.3;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.obj-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 3px;
+}
+
+.obj-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.obj-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+.bar-short  { background: linear-gradient(90deg, #f59e0b, #fcd34d); }
+.bar-medium { background: linear-gradient(90deg, #3b82f6, #93c5fd); }
+.bar-long   { background: linear-gradient(90deg, #10b981, #6ee7b7); }
+
+.obj-pct {
+    font-size: 0.55em;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    #objectives-panel {
+        width: 190px;
+        right: 6px;
+        bottom: 64px;
+    }
+}
+
+/* =====================================================
+   PHASE 1 : EFFETS VISUELS LIÉS À L'INTÉGRITÉ
+   ===================================================== */
+
+body.integrity-critical .app-container {
+    animation: glitch-cycle 3s infinite;
+    filter: contrast(130%) hue-rotate(90deg) saturate(1.5);
+}
+
+body.integrity-critical::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(255, 0, 85, 0.04) 0px,
+        transparent 2px,
+        transparent 6px
+    );
+    pointer-events: none;
+    z-index: 9999;
+    animation: scanlines-move 0.08s linear infinite;
+}
+
+@keyframes scanlines-move {
+    from { background-position: 0 0; }
+    to   { background-position: 0 8px; }
+}
+
+body.integrity-low .app-container {
+    filter: saturate(0.6) hue-rotate(20deg);
+}
+
+body.integrity-mid .app-container {
+    filter: saturate(0.85);
+}
+
+body.integrity-high .app-container {
+    filter: none;
+    transition: filter 1s ease;
+}
+
+body.integrity-full .app-container {
+    filter: none;
+}
+
+body.integrity-full::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 9998;
+}
+
+/* =====================================================
+   PHASE 4 : RESKIN NARRATIF DES MODULES
+   ===================================================== */
+
+.module-narrative-intro {
+    background: linear-gradient(135deg, rgba(0, 20, 40, 0.85), rgba(0, 10, 25, 0.9));
+    border: 1px solid rgba(0, 255, 157, 0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-family: 'Share Tech Mono', monospace;
+}
+
+.mod-narr-title {
+    font-size: 0.65em;
+    color: rgba(0, 255, 157, 0.85);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 4px;
+}
+
+.mod-narr-text {
+    font-size: 0.72em;
+    color: rgba(200, 220, 255, 0.7);
+    line-height: 1.5;
+    font-family: 'Share Tech Mono', monospace;
+}
+
+/* =====================================================
+   PHASE 5 : CUTSCENES
+   ===================================================== */
+
+.cutscene-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200000;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    animation: fadeIn 0.4s ease;
+}
+
+.cutscene-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.85em;
+    color: #00ff9d;
+    text-align: center;
+    text-shadow: 0 0 12px rgba(0, 255, 157, 0.6);
+    letter-spacing: 0.08em;
+}
+
+.cutscene-canvas {
+    image-rendering: pixelated;
+    width: 192px;
+    height: 192px;
+    border: 2px solid rgba(0, 255, 157, 0.3);
+    border-radius: 8px;
+}
+
+.cutscene-skip-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    padding: 8px 20px;
+    font-size: 0.8em;
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+}
+
+.cutscene-skip-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
