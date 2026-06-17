@@ -219,6 +219,7 @@ window.toggleObjectivesPanel = function () {
 function updateStoryHUD() {
     updateIntegrityBar();
     renderObjectivesPanel();
+    checkMissingNoInterference();
 }
 
 // ======================================================
@@ -472,6 +473,10 @@ const MODULE_NARRATIVE = {
         title: 'INCURSION EN ZONE CORROMPUE',
         text: 'Les secteurs instables recèlent les données les plus rares. Chaque expédition est une plongée dans le code brisé — revenez avec des fragments pour la restauration.'
     },
+    'poker-page': {
+        title: 'DÉCRYPTAGE DE FRAGMENTS DE CODE',
+        text: 'Le Poké-Poker n\'est pas un jeu de hasard. C\'est un protocole de décryptage : chaque main jouée décode un fragment du génome corrompu.'
+    },
     'research-page': {
         title: 'PRODUCTION D\'ÉNERGIE ONIRIQUE',
         text: 'L\'Énergie Onirique est le carburant de la restauration — et ce qui permettra, au climax, de sauver Porygon-Z du sacrifice final.'
@@ -643,6 +648,68 @@ function showOutsidersPrestigeNarrative() {
         setTimeout(checkStoryProgress, 500);
     };
 })();
+
+// Patch completeMissingNoDefeat — branche les cutscenes du climax
+(function patchMissingNoClimaxHooks() {
+    // On attend que la page soit chargée pour patcher
+    function tryPatch() {
+        const orig = window.completeMissingNoDefeat;
+        if (typeof orig !== 'function') {
+            setTimeout(tryPatch, 500);
+            return;
+        }
+        window.completeMissingNoDefeat = function () {
+            // Cutscene révélation MissingNo avant le passage à Johto
+            playCutscene('missingno_reveal');
+            // Délai pour laisser la cutscene/fallback s'afficher brièvement
+            setTimeout(() => orig.apply(this, arguments), 800);
+        };
+    }
+    tryPatch();
+})();
+
+// Hook MissingNo — messages corrompus aux pics de tension
+// Déclenchés quand l'intégrité passe sous des seuils critiques
+let _lastIntegrityForGlitch = 100;
+function checkMissingNoInterference() {
+    const integrity = computeWorldIntegrity();
+    const gs = window.gameState;
+    if (!gs || !gs.introSeen) return;
+
+    const GLITCH_MESSAGES = [
+        ['̸̙͚̈́̈͋M̵̬͔̒̕Ȉ̶̫̠͘S̶̘̺̀S̷̳̹̒̽I̴̜̓N̷̩̩̿G̵͖̝͒͝N̸̙̒͜Ȯ̷̥̱͘', 'Protocole de suppression : EN COURS', 'Tu ne peux pas me stopper, Archiviste.'],
+        ['ERREUR : DONNÉES MANQUANTES', '█████ FICHIER CORROMPU █████', 'Je suis ce qui reste quand tout est effacé.'],
+        ['Corruption détectée : 10̴0%', 'ARRÊT DU SYSTÈME IMMINENT', 'Je précède même le code.'],
+    ];
+
+    // Intervenir quand l'intégrité baisse sous un seuil critique
+    const TRIGGER_THRESHOLDS = [10, 5, 2];
+    for (const t of TRIGGER_THRESHOLDS) {
+        if (integrity <= t && _lastIntegrityForGlitch > t) {
+            const flagId = 'missingno_glitch_' + t;
+            if (!gs.system.narrativeFlags.includes(flagId)) {
+                gs.system.narrativeFlags.push(flagId);
+                const msg = GLITCH_MESSAGES[Math.floor(Math.random() * GLITCH_MESSAGES.length)];
+                if (typeof showPorygonMessage === 'function') {
+                    showPorygonMessage(msg, 'error');
+                }
+            }
+        }
+    }
+
+    // Aussi intervenir lors des transitions de phase critique → moins critique
+    if (integrity >= 20 && _lastIntegrityForGlitch < 20) {
+        const flagId = 'missingno_retreating';
+        if (!gs.system.narrativeFlags.includes(flagId)) {
+            gs.system.narrativeFlags.push(flagId);
+            if (typeof showPorygonMessage === 'function') {
+                showPorygonMessage(['Corruption en recul...', 'MissingNo : "Ce n\'est qu\'un délai."', 'Continue, Archiviste.'], 'progress');
+            }
+        }
+    }
+
+    _lastIntegrityForGlitch = integrity;
+}
 
 // S'assurer que les objectifs post-game restent alimentés
 function ensurePostGameObjectives() {
