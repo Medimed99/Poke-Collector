@@ -15108,6 +15108,8 @@ window.applySaveData = function (data) {
         if (data.rareCaptureCount !== undefined) gameState.rareCaptureCount = parseInt(data.rareCaptureCount) || 0;
         if (data.currentRegion !== undefined) gameState.currentRegion = data.currentRegion || 'Kanto';
         if (data.tutorialSeen !== undefined) gameState.tutorialSeen = data.tutorialSeen || false;
+        // FIX : restaurer l'état de l'intro pour ne pas la rejouer à chaque refresh.
+        if (data.introSeen !== undefined) gameState.introSeen = !!data.introSeen;
         if (data.pokedexMode !== undefined) gameState.pokedexMode = data.pokedexMode || 'grid';
         if (data.pokedexRegion !== undefined) gameState.pokedexRegion = data.pokedexRegion || 'Kanto';
 
@@ -23649,11 +23651,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // Vérifier si l'intro doit être affichée (nouvelle partie ou PWA)
     setTimeout(() => {
-        const savedData = localStorage.getItem('poke_gamedata');
+        // FIX : bonne clé de sauvegarde (était 'poke_gamedata' → toujours null → intro
+        // affichée à chaque refresh). On se fie à introSeen, restauré depuis la save.
+        const savedData = localStorage.getItem('pokemonGameV62');
         const gameBoyScreen = document.getElementById('game-boy-screen');
 
-        // Si pas de sauvegarde ou si introSeen n'est pas dans gameState
-        if (gameBoyScreen && (!savedData || !gameState.introSeen)) {
+        // Afficher l'intro uniquement si elle n'a jamais été vue.
+        if (gameBoyScreen && !gameState.introSeen) {
             console.log('🎮 PWA: Affichage de l\'écran d\'intro');
             gameBoyScreen.style.display = 'flex';
         } else if (gameBoyScreen) {
