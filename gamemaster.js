@@ -398,6 +398,24 @@
 
             <hr class="gm-divider">
 
+            <!-- Tickets Firewall (Game Guardian) -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+                <span class="gm-section-title" style="color:#fb7185;margin-bottom:0">🎟️ Tickets Firewall (Boss)</span>
+                <span class="gm-stat-value" id="gm-val-tickets" style="color:#fb7185;font-size:1em">0</span>
+            </div>
+            <div class="gm-row" style="margin-bottom:5px">
+                <button class="gm-btn" onclick="window.GameMaster.addFirewallTickets(1)">+1</button>
+                <button class="gm-btn" onclick="window.GameMaster.addFirewallTickets(5)">+5</button>
+                <button class="gm-btn" onclick="window.GameMaster.addFirewallTickets(10)">+10</button>
+                <button class="gm-btn" onclick="window.GameMaster.addFirewallTickets(50)">+50</button>
+            </div>
+            <div class="gm-row" style="margin-bottom:2px">
+                <input class="gm-input" id="gm-tickets-input" type="number" placeholder="Tickets custom…" min="1">
+                <button class="gm-btn gm-btn-red" onclick="window.GameMaster.addFirewallTicketsCustom()">OK</button>
+            </div>
+
+            <hr class="gm-divider">
+
             <!-- Niveau -->
             <div class="gm-section-title" style="color:#c4b5fd">🎯 Définir Niveau</div>
             <div class="gm-row" style="margin-bottom:5px">
@@ -470,6 +488,7 @@
             setTxt('gm-val-level', gs.level);
             setTxt('gm-val-xp', `${gs.xp} / ${gs.xpToNext}`);
             setTxt('gm-val-coins', gs.coins.toLocaleString('fr-FR'));
+            setTxt('gm-val-tickets', gs.bossBattle?.firewallTickets ?? 0);
 
             this._renderModules();
         },
@@ -525,6 +544,23 @@
             const el = document.getElementById('gm-coins-input');
             const n = parseInt(el?.value) || 0;
             if (n > 0) { this.addCoins(n); if (el) el.value = ''; }
+        },
+
+        addFirewallTickets(amount) {
+            const gs = window.gameState;
+            if (!gs) return;
+            if (!gs.bossBattle) gs.bossBattle = { firewallTickets: 0, lastTicketReset: null, battlesCompleted: 0, battlesWon: 0, currentBattle: null };
+            gs.bossBattle.firewallTickets = (gs.bossBattle.firewallTickets || 0) + amount;
+            if (typeof window.saveGame === 'function') window.saveGame();
+            refreshAllUI();
+            this.refreshStatus();
+            toast(`🎮 GM: +${amount} Ticket(s) Firewall (total : ${gs.bossBattle.firewallTickets})`, 'success');
+        },
+
+        addFirewallTicketsCustom() {
+            const el = document.getElementById('gm-tickets-input');
+            const n = parseInt(el?.value) || 0;
+            if (n > 0) { this.addFirewallTickets(n); if (el) el.value = ''; }
         },
 
         setLevel(target) {
