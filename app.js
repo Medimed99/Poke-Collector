@@ -11854,6 +11854,22 @@ let startupSequence = {
 };
 
 function startInitialSequence() {
+    // AUTO-RÉPARATION : un joueur qui a déjà de la progression a forcément vu
+    // l'intro. L'ancien bug (introSeen non restauré) a pu écraser le flag à false
+    // dans des sauvegardes existantes ; on le rétablit ici pour ne plus rejouer
+    // l'intro à chaque refresh.
+    const hasProgress = (gameState.level || 1) > 1
+        || (gameState.captured && gameState.captured.size > 0)
+        || (gameState.totalCaught || 0) > 0
+        || gameState.customization?.nameModalSeen
+        || !!localStorage.getItem('poke_username');
+    if (!gameState.introSeen && hasProgress) {
+        gameState.introSeen = true;
+        if (!gameState.customization) gameState.customization = {};
+        gameState.customization.nameModalSeen = true;
+        if (typeof saveGame === 'function') saveGame();
+    }
+
     // Réinitialiser si nouvelle partie
     if (!gameState.introSeen && !gameState.customization.nameModalSeen) {
         startupSequence.currentStep = 0;
