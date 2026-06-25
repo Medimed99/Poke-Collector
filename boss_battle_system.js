@@ -244,132 +244,183 @@ window.startBossBattle = function(bossId, modalId) {
     initializeBossBattle(boss, team);
 };
 
+// CHANTIER 5 — Génère un jeu de compétences variées et lisibles pour le Boss,
+// dont une grosse attaque AoE télégraphiée (le joueur doit réagir).
+function buildBossSkills(boss) {
+    const skills = [
+        { id: 'b_strike', name: 'Frappe Données', type: 'damage_single', damage: 0.6, cooldown: 0 },
+        { id: 'b_wave', name: 'Vague Corrompue', type: 'damage_aoe', damage: 0.45, cooldown: 3, telegraph: true, big: true },
+        { id: 'b_overload', name: 'Surcharge', type: 'def_up', cooldown: 5 }
+    ];
+    if ((boss.attackPattern || 'balanced') === 'aggressive') {
+        skills.push({ id: 'b_burst', name: 'Annihilation', type: 'damage_single', damage: 0.95, cooldown: 4, telegraph: true, big: true });
+    }
+    if ((boss.attackPattern || 'balanced') === 'defensive') {
+        skills.push({ id: 'b_shield', name: 'Pare-feu', type: 'shield', cooldown: 5 });
+    }
+    return skills.map(s => ({ ...s, currentCooldown: 0 }));
+}
+
 // Fonction pour initialiser le combat
 function initializeBossBattle(boss, team) {
     // Créer les BattleUnits
     const playerUnits = team.map(p => createBattleUnit(p.id, p.isShiny));
-    
-    // Calculer le HP total du Boss (phases)
-    const totalPhases = boss.phases || 1;
-    const hpPerPhase = boss.hpPerPhase || (boss.hp || 5000);
-    const totalHp = totalPhases * hpPerPhase;
-    
+
+    // CHANTIER 5 — Phases réelles : le HP total est découpé en N phases.
+    const totalPhases = boss.phases || ((boss.level || 1) >= 3 ? 3 : 2);
+    const totalHp = boss.hp || boss.maxHp || 50000;
+    const hpPerPhase = Math.round(totalHp / totalPhases);
+
+    // Types du boss dérivés de l'espèce (POKEMON_TYPES, en FR) pour l'efficacité de type.
+    const bossTypes = boss.types || POKEMON_TYPES[boss.pokemonId] || ['Normal'];
+    const bossLevel = boss.level || 1;
+
     // Initialiser l'état du combat
     currentBattleState = {
         boss: {
             ...boss,
+            types: bossTypes,
             currentHp: totalHp,
             maxHp: totalHp,
             hpPerPhase: hpPerPhase,
             currentPhase: 1,
             totalPhases: totalPhases,
             atb: 0,
-            atk: 200 + (boss.level || 1) * 50, // Attaque de base du Boss (scalée par niveau)
-            skills: boss.skills ? boss.skills.map(s => ({ ...s, currentCooldown: 0 })) : []
+            atk: 200 + bossLevel * 50,           // attaque physique
+            spAtk: 220 + bossLevel * 55,         // attaque spéciale
+            stats: { def: 120 + bossLevel * 30, spDef: 130 + bossLevel * 30 },
+            stunnedTurns: 0,
+            shield: 0,
+            skills: (boss.skills && boss.skills.length ? boss.skills.map(s => ({ ...s, currentCooldown: 0 })) : buildBossSkills(boss)),
+            nextSkill: null
         },
         playerTeam: playerUnits,
         activeUnitIndex: 0,
         isPlayerTurn: false,
+        taunt: null,            // { index, turns }
         battleLog: [],
         turnCount: 0
     };
-    
+
+    // Télégraphe la première intention du boss.
+    chooseBossNextSkill();
+
     // Message de début de combat
-    addBattleLog(`⚔️ Combat contre ${boss.name} commencé!`, 'info');
+    addBattleLog(`Combat contre ${boss.name} commencé !`, 'info');
     addBattleLog(`Phase ${currentBattleState.boss.currentPhase}/${totalPhases}`, 'info');
-    
+
     // Afficher l'interface de combat
     renderBattleInterface();
-    
+
     // Démarrer le moteur ATB
     startATBEngine();
 }
 
-// Fonction pour afficher l'interface de combat
+// Couleur d'un type (pastille). S'appuie sur TYPE_COLORS (app.js).
+function getTypeColor(type) {
+    return (typeof TYPE_COLORS !== 'undefined' && TYPE_COLORS[type]) || '#888';
+}
+
+// Libellé court de la catégorie de skill (pour les non-attaques).
+function getSkillTag(skill) {
+    switch (skill.type) {
+        case 'heal': return 'SOIN';
+        case 'taunt': return 'PROVOC';
+        case 'stun': return 'STUN';
+        case 'buff_team': return 'BUFF';
+        case 'shield': return 'BOUCLIER';
+        case 'damage_aoe': return 'AoE';
+        default: return null;
+    }
+}
+
+// Barre HP : classe couleur selon le %.
+function hpColorClass(pct) {
+    return pct > 50 ? 'hp-green' : pct > 20 ? 'hp-orange' : 'hp-red';
+}
+
+// Fonction pour afficher l'interface de combat (CHANTIER 1 — mobile-first plein écran)
 function renderBattleInterface() {
     const container = document.getElementById('boss-battle-container');
     if (!container || !currentBattleState) return;
-    
+
+    container.classList.add('bb-fullscreen');
+    if (typeof hideBottomNavForBattle === 'function') hideBottomNavForBattle();
+
     const boss = currentBattleState.boss;
     const activeUnit = currentBattleState.playerTeam[currentBattleState.activeUnitIndex];
-    
-    let html = `
-        <div class="boss-battle-stage">
-            <!-- Timeline -->
-            <div class="boss-timeline" id="battle-timeline">
-                <!-- Sera mis à jour dynamiquement -->
-            </div>
-            
-            <!-- Boss Zone -->
-            <div class="boss-zone">
-                <div class="boss-card">
-                    <div class="boss-name">${boss.name}</div>
-                    <div class="boss-hp-bar">
-                        <div class="boss-hp-fill" id="boss-hp-fill" style="width: ${(boss.currentHp / boss.maxHp) * 100}%"></div>
-                    </div>
+    const bossHpPct = (boss.currentHp / boss.maxHp) * 100;
+    const next = boss.nextSkill;
+    const telegraph = next && next.telegraph
+        ? `<div class="bb-telegraph">⚠ ${boss.name.replace(/\/\/\//g, '').trim()} prépare : <strong>${next.name}</strong></div>`
+        : '';
+
+    const html = `
+        <div class="bb-stage">
+            <!-- BOSS -->
+            <div class="bb-boss" id="bb-boss-zone">
+                <div class="bb-boss-head">
+                    <span class="bb-boss-name" id="bb-boss-name">${boss.name}</span>
+                    <span class="bb-boss-phase" id="bb-boss-phase">Phase ${boss.currentPhase}/${boss.totalPhases}</span>
                 </div>
-                <div class="boss-visual">
-                    <div class="boss-aura"></div>
-                    <img src="${getAnimatedSpriteUrl(boss.pokemonId, false)}" class="boss-sprite" alt="${boss.name}">
+                <div class="bb-hpbar bb-hpbar--boss">
+                    <div class="bb-hpfill ${hpColorClass(bossHpPct)}" id="boss-hp-fill" style="width:${bossHpPct}%"></div>
                 </div>
+                <div class="bb-boss-types">
+                    ${(boss.types || []).map(t => `<span class="bb-typepill" style="background:${getTypeColor(t)}">${t}</span>`).join('')}
+                </div>
+                <div class="bb-boss-visual" id="bb-boss-visual">
+                    <div class="bb-boss-aura"></div>
+                    <img src="${getAnimatedSpriteUrl(boss.pokemonId, false)}" class="boss-sprite bb-boss-sprite" alt="${boss.name}">
+                </div>
+                ${telegraph}
             </div>
-            
-            <!-- Player Zone -->
-            <div class="player-zone">
-                <div class="team-formation">
-                    ${currentBattleState.playerTeam.map((unit, index) => {
-                        const isActive = index === currentBattleState.activeUnitIndex;
-                        const spriteUrl = getAnimatedSpriteUrl(unit.id, unit.isShiny);
-                        return `
-                            <div class="${isActive ? 'active-unit' : `support-unit s${index}`}" id="player-unit-${index}">
-                                ${isActive ? `
-                                    <div class="player-hud">
-                                        <div class="player-name">${unit.name}</div>
-                                        <div class="player-hp-bar">
-                                            <div class="player-hp-fill" id="player-hp-${index}" style="width: ${(unit.currentHp / unit.maxHp) * 100}%"></div>
-                                        </div>
-                                    </div>
-                                ` : ''}
-                                <img src="${spriteUrl}" class="${isActive ? 'active-sprite' : ''}" alt="${unit.name}">
+
+            <!-- TIMELINE ATB -->
+            <div class="bb-timeline" id="battle-timeline"></div>
+
+            <!-- ÉQUIPE -->
+            <div class="bb-team" id="bb-team">
+                ${currentBattleState.playerTeam.map((unit, index) => {
+                    const isActive = index === currentBattleState.activeUnitIndex && currentBattleState.isPlayerTurn;
+                    const ko = unit.currentHp <= 0;
+                    const pct = (unit.currentHp / unit.maxHp) * 100;
+                    const spriteUrl = getAnimatedSpriteUrl(unit.id, unit.isShiny);
+                    return `
+                        <div class="bb-unit ${isActive ? 'bb-unit--active' : ''} ${ko ? 'bb-unit--ko' : ''}" id="player-unit-${index}">
+                            <img src="${spriteUrl}" class="bb-unit-sprite" alt="${unit.name}">
+                            <div class="bb-unit-name">${unit.name}</div>
+                            <div class="bb-hpbar">
+                                <div class="bb-hpfill ${hpColorClass(pct)}" id="player-hp-${index}" style="width:${pct}%"></div>
                             </div>
-                        `;
-                    }).join('')}
-                </div>
+                            ${unit.shield > 0 ? '<div class="bb-shield-badge" id="shield-' + index + '">🛡</div>' : ''}
+                        </div>
+                    `;
+                }).join('')}
             </div>
-            
-            <!-- Control Panel -->
-            <div class="boss-control-panel" id="battle-control-panel">
-                ${activeUnit.skills.map((skill, index) => `
-                    <button class="action-btn ${skill.currentCooldown > 0 ? 'disabled' : ''}" 
-                            onclick="useSkill(${index})" 
-                            id="skill-btn-${index}">
-                        <span class="btn-icon">${getSkillIcon(skill.type)}</span>
-                        <span class="btn-label">${skill.name}</span>
-                        ${skill.currentCooldown > 0 ? `<span class="cooldown-indicator">${skill.currentCooldown}</span>` : ''}
-                    </button>
-                `).join('')}
+
+            <!-- COMPÉTENCES -->
+            <div class="bb-skills" id="battle-control-panel">
+                ${currentBattleState.isPlayerTurn ? activeUnit.skills.map((skill, index) => {
+                    const onCd = skill.currentCooldown > 0;
+                    const color = getTypeColor(skill.moveType);
+                    const tag = getSkillTag(skill);
+                    return `
+                        <button class="bb-skill ${onCd ? 'bb-skill--cd' : ''} ${skill.signature ? 'bb-skill--sig' : ''}"
+                                onclick="useSkill(${index})" id="skill-btn-${index}" ${onCd ? 'disabled' : ''}>
+                            <span class="bb-skill-pill" style="background:${color}">${skill.moveType || '•'}</span>
+                            <span class="bb-skill-name">${skill.name}</span>
+                            ${tag ? `<span class="bb-skill-tag">${tag}</span>` : ''}
+                            ${onCd ? `<span class="bb-skill-cd">${skill.currentCooldown}</span>` : ''}
+                        </button>
+                    `;
+                }).join('') : `<div class="bb-waiting">⏳ En attente du prochain tour…</div>`}
             </div>
         </div>
     `;
-    
-    container.innerHTML = html;
-    
-    // Mettre à jour la timeline
-    updateBattleTimeline();
-}
 
-// Fonction pour obtenir l'icône d'un skill
-function getSkillIcon(skillType) {
-    const icons = {
-        'damage_single': '⚔️',
-        'damage_aoe': '💥',
-        'heal': '💚',
-        'buff_team': '⬆️',
-        'taunt': '🛡️',
-        'stun': '💫',
-        'shield': '🔰'
-    };
-    return icons[skillType] || '⚡';
+    container.innerHTML = html;
+    updateBattleTimeline();
 }
 
 // Fonction pour mettre à jour la timeline
@@ -393,18 +444,16 @@ function updateBattleTimeline() {
     // Trier par ATB décroissant
     allUnits.sort((a, b) => b.atb - a.atb);
     
-    timeline.innerHTML = allUnits.filter(u => u.type === 'boss' || u.isAlive).map(unit => {
-        const spriteUrl = unit.type === 'boss' 
+    timeline.innerHTML = `<span class="bb-tl-label">ORDRE</span>` + allUnits.filter(u => u.type === 'boss' || u.isAlive).map(unit => {
+        const spriteUrl = unit.type === 'boss'
             ? getAnimatedSpriteUrl(currentBattleState.boss.pokemonId, false)
             : getAnimatedSpriteUrl(currentBattleState.playerTeam[unit.index].id, currentBattleState.playerTeam[unit.index].isShiny);
-        
+
         return `
-            <div class="timeline-portrait ${unit.type === 'boss' ? 'boss' : ''} ${unit.isActive ? 'active' : ''}" 
-                 style="opacity: ${unit.isAlive === false ? 0.3 : 1};">
+            <div class="bb-tl-portrait ${unit.type === 'boss' ? 'bb-tl-boss' : ''} ${unit.isActive ? 'bb-tl-active' : ''}"
+                 style="opacity:${unit.isAlive === false ? 0.3 : 1};">
                 <img src="${spriteUrl}" alt="${unit.name}">
-                <div style="position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); font-size: 8px; color: #00ff9d;">
-                    ${Math.round(unit.atb)}%
-                </div>
+                <span class="bb-tl-atb">${Math.round(unit.atb)}%</span>
             </div>
         `;
     }).join('');
@@ -482,78 +531,128 @@ window.useSkill = function(skillIndex) {
     renderBattleInterface();
 };
 
-// Fonction pour exécuter un skill
+// Applique des dégâts au boss en tenant compte de son bouclier éventuel.
+function dealDamageToBoss(amount, isAOE) {
+    const boss = currentBattleState.boss;
+    let dmg = amount;
+    if (boss.shield > 0) {
+        const absorbed = Math.min(boss.shield, dmg);
+        boss.shield -= absorbed;
+        dmg -= absorbed;
+        if (absorbed > 0) addBattleLog(`Le bouclier du boss absorbe ${absorbed} dégâts.`, 'info');
+    }
+    const before = boss.currentHp;
+    boss.currentHp = Math.max(0, boss.currentHp - dmg);
+    showDamageNumber(before - boss.currentHp, 'boss', isAOE);
+}
+
+// Fonction pour exécuter un skill (joueur). Tous les types sont gérés (CHANTIER 5).
 function executeSkill(unit, skill) {
     const boss = currentBattleState.boss;
-    
+
     switch (skill.type) {
-        case 'damage_single':
-            const damage = calculateDamage(unit, boss, skill.multiplier || 1.0);
-            boss.currentHp = Math.max(0, boss.currentHp - damage);
-            addBattleLog(`${unit.name} utilise ${skill.name} et inflige ${damage} dégâts!`);
-            // Animation de dégâts
-            showDamageNumber(boss.currentHp > 0 ? damage : boss.currentHp + damage, 'boss', false);
-            // Animation d'attaque sur l'unité active
+        case 'damage_single': {
+            const damage = calculateDamage(unit, boss, skill.multiplier || 1.0, skill.moveType);
+            dealDamageToBoss(damage, false);
+            addBattleLog(`${unit.name} utilise ${skill.name} et inflige ${damage} dégâts !`);
             animateUnitAttack(unit);
             break;
-            
-        case 'damage_aoe':
-            // Dégâts de zone
-            const aoeDamage = calculateDamage(unit, boss, (skill.multiplier || 0.7) * 0.8);
-            boss.currentHp = Math.max(0, boss.currentHp - aoeDamage);
-            addBattleLog(`${unit.name} utilise ${skill.name} et inflige ${aoeDamage} dégâts de zone!`);
-            showDamageNumber(boss.currentHp > 0 ? aoeDamage : boss.currentHp + aoeDamage, 'boss', true);
+        }
+
+        case 'damage_aoe': {
+            // Contre un boss unique : grosse frappe (compétence signature).
+            const aoeDamage = calculateDamage(unit, boss, skill.multiplier || 0.7, skill.moveType);
+            dealDamageToBoss(aoeDamage, true);
+            addBattleLog(`${unit.name} déchaîne ${skill.name} : ${aoeDamage} dégâts !`);
             animateUnitAttack(unit);
             break;
-            
-        case 'heal':
+        }
+
+        case 'heal': {
             const healAmount = Math.round(unit.maxHp * (skill.multiplier || 0.3));
             currentBattleState.playerTeam.forEach((teamUnit, index) => {
                 if (teamUnit.currentHp > 0) {
                     const oldHp = teamUnit.currentHp;
                     teamUnit.currentHp = Math.min(teamUnit.maxHp, teamUnit.currentHp + healAmount);
-                    // Animation de soin
                     showHealNumber(teamUnit.currentHp - oldHp, `player-unit-${index}`);
                 }
             });
-            addBattleLog(`${unit.name} soigne l'équipe de ${healAmount} PV!`);
+            addBattleLog(`${unit.name} soigne l'équipe de ${healAmount} PV !`);
             animateUnitHeal(unit);
             break;
-            
-        case 'buff_team':
+        }
+
+        case 'buff_team': {
             currentBattleState.playerTeam.forEach(teamUnit => {
                 if (teamUnit.currentHp > 0) {
-                    // Appliquer buff (simplifié)
                     teamUnit.stats.atk = Math.round(teamUnit.stats.atk * 1.2);
+                    teamUnit.stats.spAtk = Math.round((teamUnit.stats.spAtk || teamUnit.stats.atk) * 1.2);
                     teamUnit.stats.spd = Math.round(teamUnit.stats.spd * 1.1);
                 }
             });
-            addBattleLog(`${unit.name} renforce l'équipe!`);
+            addBattleLog(`${unit.name} renforce l'équipe (ATK/VIT) !`);
             animateUnitBuff(unit);
             break;
+        }
+
+        case 'taunt': {
+            // Le boss ciblera ce Pokémon ; il gagne un bouclier.
+            const idx = currentBattleState.activeUnitIndex;
+            currentBattleState.taunt = { index: idx, turns: 2 };
+            const shield = Math.round(unit.maxHp * (skill.shieldPct || 0.3));
+            unit.shield = (unit.shield || 0) + shield;
+            addBattleLog(`${unit.name} provoque le boss et lève un bouclier (${shield} PV) !`);
+            animateUnitBuff(unit);
+            break;
+        }
+
+        case 'stun': {
+            // Petits dégâts + étourdit le boss (saute son prochain tour).
+            if (skill.multiplier) {
+                const dmg = calculateDamage(unit, boss, skill.multiplier, skill.moveType);
+                dealDamageToBoss(dmg, false);
+            }
+            boss.stunnedTurns = Math.max(boss.stunnedTurns || 0, 1);
+            addBattleLog(`${unit.name} étourdit ${boss.name} ! Le boss saute son tour.`, 'warning');
+            animateUnitAttack(unit);
+            break;
+        }
+
+        case 'shield': {
+            const shield = Math.round(unit.maxHp * (skill.multiplier || 0.4));
+            unit.shield = (unit.shield || 0) + shield;
+            addBattleLog(`${unit.name} érige un bouclier (${shield} PV) !`);
+            animateUnitBuff(unit);
+            break;
+        }
+
+        default:
+            addBattleLog(`${unit.name} utilise ${skill.name}.`);
+            animateUnitAttack(unit);
     }
-    
+
     // Mettre le skill en cooldown
     skill.currentCooldown = skill.cooldown || 0;
-    
+
     // Vérifier la victoire/défaite
     checkBattleEnd();
-    
+
     // Mettre à jour l'interface
     updateBattleInterface();
 }
 
 // Fonction pour afficher un nombre de dégâts flottant
 function showDamageNumber(damage, target, isAOE) {
-    const targetElement = target === 'boss' 
-        ? document.querySelector('.boss-visual')
-        : document.getElementById(`player-unit-${currentBattleState.activeUnitIndex}`);
-    
+    // target : 'boss' OU un id d'élément ('player-unit-N').
+    const targetElement = target === 'boss'
+        ? document.querySelector('.bb-boss-visual')
+        : (document.getElementById(target) || document.getElementById(`player-unit-${currentBattleState.activeUnitIndex}`));
+
     if (!targetElement) return;
-    
+
     const damageEl = document.createElement('div');
     damageEl.style.cssText = `
-        position: absolute;
+        position: fixed;
         color: ${isAOE ? '#ff6b6b' : '#ff0055'};
         font-size: 24px;
         font-weight: bold;
@@ -583,7 +682,7 @@ function showHealNumber(heal, targetId) {
     
     const healEl = document.createElement('div');
     healEl.style.cssText = `
-        position: absolute;
+        position: fixed;
         color: #00ff9d;
         font-size: 20px;
         font-weight: bold;
@@ -638,148 +737,204 @@ function animateUnitBuff(unit) {
     }, 10);
 }
 
-// Fonction pour calculer les dégâts
-function calculateDamage(attacker, defender, skillMultiplier) {
-    const baseDamage = attacker.stats.atk * skillMultiplier;
-    
-    // Calculer l'efficacité des types
-    const attackerType = attacker.types[0]; // Type principal
-    const defenderTypes = defender.types || [defender.dominantType || 'Normal'];
-    const typeEffect = calculateTypeEffectiveness(attackerType, defenderTypes);
-    
-    // Calculer les dégâts avec la défense
-    const defenseReduction = defender.stats?.def || 100;
-    const damage = Math.round(baseDamage * typeEffect.multiplier * (100 / (100 + defenseReduction)));
-    
-    // Chance de critique
-    const critRate = 0.15; // 15% de base
-    const isCrit = Math.random() < critRate;
-    const finalDamage = isCrit ? Math.round(damage * 1.5) : damage;
-    
-    if (isCrit) {
-        addBattleLog('✨ COUP CRITIQUE! ✨', 'crit');
+// CHANTIER 4 — Calcul de dégâts propre : STAB + efficacité de type FR complète
+// (2 types défenseur) + split physique/spécial + variance + crit + feedback lisible.
+function calculateDamage(attacker, defender, skillMultiplier, moveType) {
+    // Type de l'ATTAQUE (pas forcément le type principal du Pokémon).
+    const atkType = moveType || (attacker.types && attacker.types[0]) || 'Normal';
+    const special = (typeof isSpecialType === 'function') ? isSpecialType(atkType) : false;
+
+    // Stat offensive/défensive selon la catégorie de l'attaque.
+    const atkStat = special ? (attacker.stats.spAtk || attacker.stats.atk) : attacker.stats.atk;
+    const defStat = special
+        ? (defender.stats?.spDef || defender.stats?.def || 120)
+        : (defender.stats?.def || 120);
+
+    // STAB : ×1.5 si le type de l'attaque correspond à un type du Pokémon.
+    const stab = (attacker.types && attacker.types.includes(atkType)) ? 1.5 : 1.0;
+
+    // Efficacité de type FR complète (multiplicatif sur les 2 types du boss).
+    const defenderTypes = defender.types || ['Normal'];
+    const eff = (typeof getTypeEffectivenessFR === 'function')
+        ? getTypeEffectivenessFR(atkType, defenderTypes)
+        : { multiplier: 1, label: 'normal' };
+
+    // Variance ×0.85–1.0 (comme les vrais jeux).
+    const variance = 0.85 + Math.random() * 0.15;
+
+    let damage = atkStat * skillMultiplier * stab * eff.multiplier * (100 / (100 + defStat)) * variance;
+    damage = Math.round(damage);
+
+    // Critique 15% ×1.5.
+    const isCrit = Math.random() < 0.15;
+    if (isCrit) damage = Math.round(damage * 1.5);
+
+    // Feedback clair.
+    if (eff.label === 'super') addBattleLog('Super efficace !', 'super');
+    else if (eff.label === 'notvery') addBattleLog('Pas très efficace…', 'notvery');
+    else if (eff.label === 'immune') addBattleLog('Ça n\'affecte pas le boss…', 'immune');
+    if (isCrit) addBattleLog('Coup critique !', 'crit');
+
+    return Math.max(eff.label === 'immune' ? 0 : 1, damage);
+}
+
+// CHANTIER 5 — Choisit la PROCHAINE compétence du boss (télégraphe l'intention).
+function chooseBossNextSkill() {
+    const boss = currentBattleState.boss;
+    const available = (boss.skills || []).filter(s => !s.currentCooldown || s.currentCooldown <= 0);
+    const pattern = boss.attackPattern || 'balanced';
+    let pick = null;
+
+    if (available.length > 0) {
+        if (pattern === 'aggressive') {
+            const dmg = available.filter(s => s.type === 'damage_single' || s.type === 'damage_aoe');
+            pick = (dmg.length ? dmg : available)[Math.floor(Math.random() * (dmg.length ? dmg.length : available.length))];
+        } else if (pattern === 'defensive') {
+            const def = available.filter(s => s.type === 'def_up' || s.type === 'shield');
+            // Alterne entre se renforcer et frapper.
+            pick = (def.length && Math.random() < 0.5 ? def : available)[Math.floor(Math.random() * (def.length && Math.random() < 0.5 ? def.length : available.length))];
+        } else {
+            pick = available[Math.floor(Math.random() * available.length)];
+        }
     }
-    if (typeEffect.isGlancing) {
-        addBattleLog('⚡ Coup éraflé!', 'glancing');
-    }
-    
-    return finalDamage;
+    boss.nextSkill = pick || { id: 'b_basic', name: 'Frappe', type: 'damage_single', damage: 0.6, cooldown: 0 };
+    return boss.nextSkill;
 }
 
 // Fonction pour le tour du Boss
 function processBossTurn() {
     const boss = currentBattleState.boss;
     currentBattleState.turnCount = (currentBattleState.turnCount || 0) + 1;
-    
-    // Vérifier les phases (transition de phase)
+
+    // Vérifier les phases (transition de phase) AVANT d'agir.
     checkBossPhaseTransition();
-    
-    // Choisir un skill selon l'IA du Boss
-    const availableSkills = boss.skills?.filter(s => !s.currentCooldown || s.currentCooldown <= 0) || [];
+
     const aliveUnits = currentBattleState.playerTeam.filter(u => u.currentHp > 0);
-    
     if (aliveUnits.length === 0) {
         checkBattleEnd();
         return;
     }
-    
-    // IA selon le pattern d'attaque
-    let skillToUse = null;
-    const attackPattern = boss.attackPattern || 'balanced';
-    
-    if (availableSkills.length > 0) {
-        // Pattern agressif : privilégie les dégâts
-        if (attackPattern === 'aggressive') {
-            const damageSkills = availableSkills.filter(s => s.type === 'damage_single' || s.type === 'damage_aoe');
-            skillToUse = damageSkills.length > 0 
-                ? damageSkills[Math.floor(Math.random() * damageSkills.length)]
-                : availableSkills[0];
-        }
-        // Pattern défensif : privilégie les buffs
-        else if (attackPattern === 'defensive') {
-            const buffSkills = availableSkills.filter(s => s.type === 'def_up' || s.type === 'shield');
-            skillToUse = buffSkills.length > 0 
-                ? buffSkills[Math.floor(Math.random() * buffSkills.length)]
-                : availableSkills[0];
-        }
-        // Pattern équilibré : aléatoire
-        else {
-            skillToUse = availableSkills[Math.floor(Math.random() * availableSkills.length)];
-        }
+
+    // CHANTIER 5 — Si étourdi, le boss saute son tour.
+    if (boss.stunnedTurns > 0) {
+        boss.stunnedTurns--;
+        addBattleLog(`${boss.name} est étourdi et ne peut pas agir !`, 'warning');
+        boss.atb = 0;
+        chooseBossNextSkill();
+        checkBattleEnd();
+        updateBattleInterface();
+        return;
     }
-    
-    // Exécuter l'action
-    if (skillToUse) {
+
+    // Exécuter l'intention télégraphée (sinon attaque de base).
+    const skillToUse = boss.nextSkill;
+    if (skillToUse && skillToUse.type) {
         executeBossSkill(boss, skillToUse, aliveUnits);
-        skillToUse.currentCooldown = skillToUse.cooldown || 0;
+        const ref = (boss.skills || []).find(s => s.id === skillToUse.id);
+        if (ref) ref.currentCooldown = ref.cooldown || 0;
     } else {
-        // Attaque de base
-        const target = aliveUnits[Math.floor(Math.random() * aliveUnits.length)];
+        const target = pickBossTarget(aliveUnits);
         const damage = Math.round(boss.atk * 0.8);
-        target.currentHp = Math.max(0, target.currentHp - damage);
-        addBattleLog(`${boss.name} attaque ${target.name} et inflige ${damage} dégâts!`);
+        applyBossDamageToUnit(target, damage, false);
+        addBattleLog(`${boss.name} attaque ${target.name} et inflige ${damage} dégâts !`);
     }
-    
+
     // Réinitialiser l'ATB du Boss
     boss.atb = 0;
-    
-    // Mettre à jour les cooldowns du Boss
-    if (boss.skills) {
-        boss.skills.forEach(s => {
-            if (s.currentCooldown) s.currentCooldown--;
-        });
+
+    // Décrémenter les cooldowns du Boss
+    if (boss.skills) boss.skills.forEach(s => { if (s.currentCooldown > 0) s.currentCooldown--; });
+
+    // Décrémenter la provocation
+    if (currentBattleState.taunt) {
+        currentBattleState.taunt.turns--;
+        if (currentBattleState.taunt.turns <= 0) currentBattleState.taunt = null;
     }
-    
+
+    // Choisir et télégraphier la prochaine intention.
+    chooseBossNextSkill();
+
     // Vérifier la fin du combat
     checkBattleEnd();
     updateBattleInterface();
 }
 
-// Fonction pour exécuter un skill du Boss
+// Cible du boss : respecte la provocation (taunt) si active et l'unité est vivante.
+function pickBossTarget(aliveUnits) {
+    const taunt = currentBattleState.taunt;
+    if (taunt) {
+        const tu = currentBattleState.playerTeam[taunt.index];
+        if (tu && tu.currentHp > 0) return tu;
+    }
+    return aliveUnits[Math.floor(Math.random() * aliveUnits.length)];
+}
+
+// Applique des dégâts à une unité joueur, en absorbant via son bouclier.
+function applyBossDamageToUnit(unit, amount, isAOE) {
+    let dmg = amount;
+    if (unit.shield > 0) {
+        const absorbed = Math.min(unit.shield, dmg);
+        unit.shield -= absorbed;
+        dmg -= absorbed;
+    }
+    unit.currentHp = Math.max(0, unit.currentHp - dmg);
+    const index = currentBattleState.playerTeam.findIndex(u => u === unit);
+    if (index >= 0) {
+        showDamageNumber(amount, `player-unit-${index}`, isAOE);
+        animateUnitDamage(index);
+    }
+}
+
+// Fonction pour exécuter un skill du Boss (tous types fonctionnels — CHANTIER 5)
 function executeBossSkill(boss, skill, aliveUnits) {
     switch (skill.type) {
-        case 'damage_single':
-            const target = aliveUnits[Math.floor(Math.random() * aliveUnits.length)];
-            const targetIndex = currentBattleState.playerTeam.findIndex(u => u.id === target.id);
+        case 'damage_single': {
+            const target = pickBossTarget(aliveUnits);
             const singleDamage = Math.round(boss.atk * (skill.damage || 0.5));
-            target.currentHp = Math.max(0, target.currentHp - singleDamage);
-            addBattleLog(`${boss.name} utilise ${skill.name} sur ${target.name} et inflige ${singleDamage} dégâts!`);
-            // Animation de dégâts
-            showDamageNumber(singleDamage, `player-unit-${targetIndex}`, false);
-            // Animation de shake
-            animateUnitDamage(targetIndex);
+            applyBossDamageToUnit(target, singleDamage, false);
+            addBattleLog(`${boss.name} utilise ${skill.name} sur ${target.name} : ${singleDamage} dégâts !`);
             break;
-            
-        case 'damage_aoe':
+        }
+
+        case 'damage_aoe': {
             const aoeDamage = Math.round(boss.atk * (skill.damage || 0.3));
-            aliveUnits.forEach((unit, index) => {
-                const unitIndex = currentBattleState.playerTeam.findIndex(u => u.id === unit.id);
-                unit.currentHp = Math.max(0, unit.currentHp - aoeDamage);
-                showDamageNumber(aoeDamage, `player-unit-${unitIndex}`, true);
-                animateUnitDamage(unitIndex);
-            });
-            addBattleLog(`${boss.name} utilise ${skill.name}! Tous les Pokémon subissent ${aoeDamage} dégâts!`);
+            aliveUnits.forEach(unit => applyBossDamageToUnit(unit, aoeDamage, true));
+            addBattleLog(`${boss.name} utilise ${skill.name} ! Toute l'équipe subit ${aoeDamage} dégâts !`, 'warning');
             break;
-            
-        case 'def_up':
-            // Le Boss se buff (simplifié pour l'instant)
+        }
+
+        case 'def_up': {
             boss.atk = Math.round(boss.atk * 1.2);
-            addBattleLog(`${boss.name} utilise ${skill.name}! Sa puissance augmente!`);
-            // Animation sur le Boss
-            const bossVisual = document.querySelector('.boss-visual');
-            if (bossVisual) {
-                bossVisual.style.animation = 'none';
-                setTimeout(() => {
-                    bossVisual.style.animation = 'boss-float 4s ease-in-out infinite, boss-glitch 3s infinite linear alternate-reverse, buffShine 1s ease';
-                }, 10);
-            }
+            boss.spAtk = Math.round((boss.spAtk || boss.atk) * 1.2);
+            addBattleLog(`${boss.name} utilise ${skill.name} ! Sa puissance augmente !`);
+            flashBossVisual();
             break;
-            
-        case 'shield':
-            // Le Boss se protège (simplifié)
-            addBattleLog(`${boss.name} utilise ${skill.name}! Il est protégé!`);
+        }
+
+        case 'shield': {
+            const shield = Math.round(boss.maxHp * 0.06);
+            boss.shield = (boss.shield || 0) + shield;
+            addBattleLog(`${boss.name} active ${skill.name} ! Bouclier de ${shield} PV.`);
+            flashBossVisual();
             break;
+        }
+
+        default: {
+            const target = pickBossTarget(aliveUnits);
+            const damage = Math.round(boss.atk * 0.6);
+            applyBossDamageToUnit(target, damage, false);
+            addBattleLog(`${boss.name} attaque ${target.name} : ${damage} dégâts !`);
+        }
     }
+}
+
+// Petit flash visuel sur le boss (buff/bouclier).
+function flashBossVisual() {
+    const bossVisual = document.querySelector('.bb-boss-visual');
+    if (!bossVisual) return;
+    bossVisual.classList.remove('bb-boss-flash');
+    void bossVisual.offsetWidth; // reflow pour relancer l'animation
+    bossVisual.classList.add('bb-boss-flash');
 }
 
 // Fonction pour animer les dégâts reçus
@@ -793,34 +948,31 @@ function animateUnitDamage(unitIndex) {
     }, 10);
 }
 
-// Fonction pour vérifier la transition de phase
+// Fonction pour vérifier la transition de phase (la phase MONTE quand les PV baissent).
 function checkBossPhaseTransition() {
     const boss = currentBattleState.boss;
-    const hpPerPhase = boss.hpPerPhase;
-    const currentPhaseHp = boss.currentHp % hpPerPhase;
-    const expectedPhase = Math.ceil(boss.currentHp / hpPerPhase);
-    
-    if (expectedPhase < boss.currentPhase && boss.currentPhase > 1) {
-        // Transition vers une phase précédente (régénération - ne devrait pas arriver)
-        return;
-    }
-    
-    if (expectedPhase > boss.currentPhase) {
-        // Nouvelle phase !
-        boss.currentPhase = expectedPhase;
-        addBattleLog(`⚠️ ${boss.name} entre en Phase ${boss.currentPhase}!`, 'warning');
-        
-        // Buff du Boss en phase supérieure
-        boss.atk = Math.round(boss.atk * 1.15); // +15% d'attaque par phase
-        
-        // Animation visuelle (à implémenter)
-        const bossVisual = document.querySelector('.boss-visual');
-        if (bossVisual) {
-            bossVisual.style.animation = 'none';
-            setTimeout(() => {
-                bossVisual.style.animation = 'boss-float 4s ease-in-out infinite, boss-glitch 3s infinite linear alternate-reverse';
-            }, 10);
+    const hpPerPhase = boss.hpPerPhase || boss.maxHp;
+    // Phases franchies = total - (nb de tranches de PV restantes) + 1.
+    const remainingChunks = Math.max(1, Math.ceil(boss.currentHp / hpPerPhase));
+    const newPhase = Math.min(boss.totalPhases, boss.totalPhases - remainingChunks + 1);
+
+    if (newPhase > boss.currentPhase) {
+        boss.currentPhase = newPhase;
+        addBattleLog(`⚠️ ${boss.name} entre en Phase ${boss.currentPhase}/${boss.totalPhases} !`, 'warning');
+
+        // Buff de phase : +15% attaque, devient plus agressif.
+        boss.atk = Math.round(boss.atk * 1.15);
+        boss.spAtk = Math.round((boss.spAtk || boss.atk) * 1.15);
+        if (boss.currentPhase >= boss.totalPhases) boss.attackPattern = 'aggressive';
+
+        // Marquage visuel fort de la transition.
+        const stage = document.querySelector('.bb-stage');
+        if (stage) {
+            stage.classList.remove('bb-phase-flash');
+            void stage.offsetWidth;
+            stage.classList.add('bb-phase-flash');
         }
+        flashBossVisual();
     }
 }
 
@@ -849,7 +1001,10 @@ function endBattle(victory) {
         clearInterval(battleATBInterval);
         battleATBInterval = null;
     }
-    
+
+    // Sortir du mode plein écran.
+    document.getElementById('boss-battle-container')?.classList.remove('bb-fullscreen');
+
     const boss = currentBattleState.boss;
     
     if (victory) {
@@ -917,30 +1072,47 @@ function addBattleLog(message, type = 'info') {
     console.log(`[BATTLE] ${message}`);
 }
 
-// Fonction pour mettre à jour l'interface de combat
+// Met à jour une barre HP (largeur + classe couleur).
+function refreshHpBar(el, pct) {
+    if (!el) return;
+    el.style.width = `${Math.max(0, pct)}%`;
+    el.classList.remove('hp-green', 'hp-orange', 'hp-red');
+    el.classList.add(hpColorClass(pct));
+}
+
+// Fonction pour mettre à jour l'interface de combat (rafraîchissement léger)
 function updateBattleInterface() {
     if (!currentBattleState) return;
-    
+
     const boss = currentBattleState.boss;
-    const bossHpFill = document.getElementById('boss-hp-fill');
-    if (bossHpFill) {
-        const hpPercent = (boss.currentHp / boss.maxHp) * 100;
-        bossHpFill.style.width = `${hpPercent}%`;
-        
-        // Mettre à jour le nom du Boss avec la phase
-        const bossName = document.querySelector('.boss-name');
-        if (bossName) {
-            bossName.textContent = `${boss.name} - Phase ${boss.currentPhase}/${boss.totalPhases}`;
+    refreshHpBar(document.getElementById('boss-hp-fill'), (boss.currentHp / boss.maxHp) * 100);
+
+    const phaseEl = document.getElementById('bb-boss-phase');
+    if (phaseEl) phaseEl.textContent = `Phase ${boss.currentPhase}/${boss.totalPhases}`;
+
+    // Télégraphe de la prochaine attaque du boss.
+    const zone = document.getElementById('bb-boss-zone');
+    if (zone) {
+        let tEl = zone.querySelector('.bb-telegraph');
+        if (boss.nextSkill && boss.nextSkill.telegraph) {
+            const txt = `⚠ ${boss.name.replace(/\/\/\//g, '').trim()} prépare : `;
+            if (!tEl) {
+                tEl = document.createElement('div');
+                tEl.className = 'bb-telegraph';
+                zone.appendChild(tEl);
+            }
+            tEl.innerHTML = `${txt}<strong>${boss.nextSkill.name}</strong>`;
+        } else if (tEl) {
+            tEl.remove();
         }
     }
-    
+
     currentBattleState.playerTeam.forEach((unit, index) => {
-        const hpFill = document.getElementById(`player-hp-${index}`);
-        if (hpFill) {
-            hpFill.style.width = `${(unit.currentHp / unit.maxHp) * 100}%`;
-        }
+        refreshHpBar(document.getElementById(`player-hp-${index}`), (unit.currentHp / unit.maxHp) * 100);
+        const unitEl = document.getElementById(`player-unit-${index}`);
+        if (unitEl) unitEl.classList.toggle('bb-unit--ko', unit.currentHp <= 0);
     });
-    
+
     updateBattleTimeline();
 }
 

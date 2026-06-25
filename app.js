@@ -252,19 +252,22 @@ function getPokemonArchetype(pokemonId) {
     const types = POKEMON_TYPES[pokemonId] || ['Normal'];
     const rarity = getRarity(pokemonId);
 
-    // Types défensifs → Tank
-    if (types.includes('Steel') || types.includes('Rock') || types.includes('Ground')) {
+    // Types défensifs → Tank (noms FR pour matcher POKEMON_TYPES)
+    if (types.includes('Acier') || types.includes('Roche') || types.includes('Sol')) {
         return 'tank';
     }
 
     // Types offensifs → Attacker
-    if (types.includes('Fire') || types.includes('Electric') || types.includes('Dragon')) {
+    if (types.includes('Feu') || types.includes('Électrik') || types.includes('Dragon') || types.includes('Combat')) {
         return 'attacker';
     }
 
-    // Types spéciaux → Support ou Disruptor
-    if (types.includes('Psychic') || types.includes('Fairy')) {
-        return rarity === 'legendary' ? 'support' : 'disruptor';
+    // Types soutien/contrôle → Support ou Disruptor
+    if (types.includes('Psy') || types.includes('Fée') || types.includes('Normal')) {
+        return rarity === 'legendary' ? 'support' : 'support';
+    }
+    if (types.includes('Spectre') || types.includes('Poison') || types.includes('Insecte')) {
+        return 'disruptor';
     }
 
     // Par défaut selon la rareté
@@ -412,6 +415,130 @@ function calculateTypeEffectiveness(attackerType, defenderTypes) {
     return { multiplier, isGlancing };
 }
 
+// ===== SYSTÈME DE TYPES (FR) — utilisé par le combat de Boss =====
+// Table d'efficacité complète en noms FR (POKEMON_TYPES est en français).
+// strong = ×2, weak = ×0.5, immune = ×0.
+const TYPE_EFFECTIVENESS_FR = {
+    Normal:   { strong: [], weak: ['Roche', 'Acier'], immune: ['Spectre'] },
+    Feu:      { strong: ['Plante', 'Glace', 'Insecte', 'Acier'], weak: ['Feu', 'Eau', 'Roche', 'Dragon'], immune: [] },
+    Eau:      { strong: ['Feu', 'Sol', 'Roche'], weak: ['Eau', 'Plante', 'Dragon'], immune: [] },
+    Plante:   { strong: ['Eau', 'Sol', 'Roche'], weak: ['Feu', 'Plante', 'Poison', 'Vol', 'Insecte', 'Dragon', 'Acier'], immune: [] },
+    'Électrik': { strong: ['Eau', 'Vol'], weak: ['Plante', 'Électrik', 'Dragon'], immune: ['Sol'] },
+    Glace:    { strong: ['Plante', 'Sol', 'Vol', 'Dragon'], weak: ['Feu', 'Eau', 'Glace', 'Acier'], immune: [] },
+    Combat:   { strong: ['Normal', 'Glace', 'Roche', 'Ténèbres', 'Acier'], weak: ['Poison', 'Vol', 'Psy', 'Insecte', 'Fée'], immune: ['Spectre'] },
+    Poison:   { strong: ['Plante', 'Fée'], weak: ['Poison', 'Sol', 'Roche', 'Spectre'], immune: ['Acier'] },
+    Sol:      { strong: ['Feu', 'Électrik', 'Poison', 'Roche', 'Acier'], weak: ['Plante', 'Insecte'], immune: ['Vol'] },
+    Vol:      { strong: ['Plante', 'Combat', 'Insecte'], weak: ['Électrik', 'Roche', 'Acier'], immune: [] },
+    Psy:      { strong: ['Combat', 'Poison'], weak: ['Psy', 'Acier'], immune: ['Ténèbres'] },
+    Insecte:  { strong: ['Plante', 'Psy', 'Ténèbres'], weak: ['Feu', 'Combat', 'Poison', 'Vol', 'Spectre', 'Acier', 'Fée'], immune: [] },
+    Roche:    { strong: ['Feu', 'Glace', 'Vol', 'Insecte'], weak: ['Combat', 'Sol', 'Acier'], immune: [] },
+    Spectre:  { strong: ['Psy', 'Spectre'], weak: ['Ténèbres'], immune: ['Normal'] },
+    Dragon:   { strong: ['Dragon'], weak: ['Acier'], immune: ['Fée'] },
+    'Ténèbres': { strong: ['Psy', 'Spectre'], weak: ['Combat', 'Ténèbres', 'Fée'], immune: [] },
+    Acier:    { strong: ['Glace', 'Roche', 'Fée'], weak: ['Feu', 'Eau', 'Électrik', 'Acier'], immune: [] },
+    Fée:      { strong: ['Combat', 'Dragon', 'Ténèbres'], weak: ['Feu', 'Poison', 'Acier'], immune: [] }
+};
+
+// Multiplicateur d'efficacité (multiplicatif sur les 2 types du défenseur).
+// Retourne { multiplier, label } — label : 'super' | 'notvery' | 'immune' | 'normal'.
+function getTypeEffectivenessFR(moveType, defenderTypes) {
+    const chart = TYPE_EFFECTIVENESS_FR[moveType];
+    if (!chart) return { multiplier: 1, label: 'normal' };
+    let multiplier = 1;
+    (defenderTypes || []).forEach(dt => {
+        if (chart.immune.includes(dt)) multiplier *= 0;
+        else if (chart.strong.includes(dt)) multiplier *= 2;
+        else if (chart.weak.includes(dt)) multiplier *= 0.5;
+    });
+    let label = 'normal';
+    if (multiplier === 0) label = 'immune';
+    else if (multiplier > 1) label = 'super';
+    else if (multiplier < 1) label = 'notvery';
+    return { multiplier, label };
+}
+
+// Couleurs officielles par type (pour les pastilles sur les boutons de compétence).
+const TYPE_COLORS = {
+    Normal: '#A8A878', Feu: '#F08030', Eau: '#6890F0', Plante: '#78C850',
+    'Électrik': '#F8D030', Glace: '#98D8D8', Combat: '#C03028', Poison: '#A040A0',
+    Sol: '#E0C068', Vol: '#A890F0', Psy: '#F85888', Insecte: '#A8B820',
+    Roche: '#B8A038', Spectre: '#705898', Dragon: '#7038F8', 'Ténèbres': '#705848',
+    Acier: '#B8B8D0', Fée: '#EE99AC'
+};
+
+// Catégorie physique/spéciale par type (split Gen 1-3 par type).
+const SPECIAL_TYPES = new Set(['Feu', 'Eau', 'Plante', 'Électrik', 'Glace', 'Psy', 'Dragon', 'Ténèbres', 'Fée']);
+function isSpecialType(type) { return SPECIAL_TYPES.has(type); }
+
+// CHANTIER 2 — Attaque de type signature par type principal (nom + multiplicateur).
+const TYPE_MOVES = {
+    Normal:    { name: 'Ultralaser',     mult: 1.0 },
+    Feu:       { name: 'Lance-Flammes',  mult: 1.1 },
+    Eau:       { name: 'Hydrocanon',     mult: 1.1 },
+    Plante:    { name: "Tranch'Herbe",   mult: 1.0 },
+    'Électrik': { name: 'Tonnerre',      mult: 1.1 },
+    Glace:     { name: 'Laser Glace',    mult: 1.1 },
+    Combat:    { name: 'Close Combat',   mult: 1.15 },
+    Poison:    { name: 'Bomb-Beurk',     mult: 1.0 },
+    Sol:       { name: 'Séisme',         mult: 1.1 },
+    Vol:       { name: 'Aéropique',      mult: 1.0 },
+    Psy:       { name: 'Psyko',          mult: 1.1 },
+    Insecte:   { name: 'Dard-Nuée',      mult: 1.0 },
+    Roche:     { name: 'Éboulement',     mult: 1.05 },
+    Spectre:   { name: "Ball'Ombre",     mult: 1.05 },
+    Dragon:    { name: 'Draco-Choc',     mult: 1.15 },
+    'Ténèbres': { name: 'Morsure',       mult: 1.0 },
+    Acier:     { name: 'Luminocanon',    mult: 1.05 },
+    Fée:       { name: 'Éclat Magique',  mult: 1.05 }
+};
+
+// CHANTIER 2 — Compétence de rôle (complète l'attaque de type, ne la remplace pas).
+const ROLE_SKILLS = {
+    attacker:  { id: 'role_burst', name: 'Assaut Brutal', type: 'damage_single', multiplier: 1.8, cooldown: 3, moveTypeFromUnit: true, desc: 'Gros coup de type' },
+    tank:      { id: 'role_taunt', name: 'Provocation', type: 'taunt', multiplier: 0, cooldown: 4, shieldPct: 0.35, moveType: 'Acier', desc: 'Attire le boss + bouclier' },
+    support:   { id: 'role_heal', name: 'Soin', type: 'heal', multiplier: 0.4, cooldown: 3, moveType: 'Fée', desc: 'Soigne toute l\'équipe' },
+    disruptor: { id: 'role_stun', name: 'Étourdissement', type: 'stun', multiplier: 0.7, cooldown: 4, moveTypeFromUnit: true, desc: 'Étourdit le boss' }
+};
+
+// CHANTIER 2 — Compétence signature (pièces maîtresses rares/légendaires).
+function buildSignatureSkill(type, rarity) {
+    const legendary = rarity === 'legendary';
+    return {
+        id: 'signature',
+        name: legendary ? 'Furie Légendaire' : 'Déchaînement',
+        type: 'damage_aoe',
+        moveType: type,
+        multiplier: legendary ? 2.4 : 2.0,
+        cooldown: 5,
+        signature: true,
+        currentCooldown: 0
+    };
+}
+
+// CHANTIER 2 — Construit le moveset complet d'un Pokémon : [attaque de type] + [rôle] (+ [signature]).
+function buildMoveset(types, archetype, rarity) {
+    const primary = types[0] || 'Normal';
+    const tm = TYPE_MOVES[primary] || TYPE_MOVES.Normal;
+    const moves = [
+        { id: 'type_atk', name: tm.name, type: 'damage_single', moveType: primary, multiplier: tm.mult, cooldown: 0, currentCooldown: 0 }
+    ];
+    const role = { ...(ROLE_SKILLS[archetype] || ROLE_SKILLS.attacker), currentCooldown: 0 };
+    if (role.moveTypeFromUnit) role.moveType = primary;
+    moves.push(role);
+    if (rarity === 'super_rare' || rarity === 'legendary') {
+        moves.push(buildSignatureSkill(primary, rarity));
+    }
+    return moves;
+}
+
+// CHANTIER 3 — Multiplicateurs de stats INDIVIDUELS par espèce (déterministe via hash de l'ID).
+// Donne à chaque Pokémon une identité (un Léviator ≠ un Magicarpe) tout en restant stable.
+function getSpeciesStatMultipliers(pokemonId) {
+    const h = (pokemonId * 2654435761) >>> 0;
+    const f = (shift) => 0.78 + (((h >>> shift) % 1000) / 1000) * 0.44; // 0.78 .. 1.22
+    return { hp: f(0), atk: f(5), def: f(11), spd: f(17), spAtk: f(21), spDef: f(26) };
+}
+
 // Fonction pour convertir un Pokémon en BattleUnit
 function createBattleUnit(pokemonId, isShiny = false) {
     const rarity = getRarity(pokemonId);
@@ -430,23 +557,22 @@ function createBattleUnit(pokemonId, isShiny = false) {
         }
     }
 
-    // Calcul des stats finales
-    // Formule : Base * (1 + BuddyMultiplier) * TypeBonus
-    const buddyMultiplier = 1 + (buddyLevel * 0.1); // +10% par niveau
-    const typeBonus = 1.0; // À ajuster selon les bonus passifs
+    // CHANTIER 3 — Stats individuelles : base (rareté) × variance d'espèce × bonus Buddy.
+    const buddyMultiplier = 1 + (buddyLevel * 0.1); // +10% par niveau Buddy
+    const sm = getSpeciesStatMultipliers(pokemonId);
 
     const finalStats = {
-        hp: Math.round(baseStats.hp * buddyMultiplier * typeBonus),
-        atk: Math.round(baseStats.atk * buddyMultiplier * typeBonus),
-        def: Math.round(baseStats.def * buddyMultiplier * typeBonus),
-        spd: Math.round(baseStats.spd * buddyMultiplier * typeBonus)
+        hp: Math.round(baseStats.hp * sm.hp * buddyMultiplier),
+        atk: Math.round(baseStats.atk * sm.atk * buddyMultiplier),
+        def: Math.round(baseStats.def * sm.def * buddyMultiplier),
+        spd: Math.round(baseStats.spd * sm.spd * buddyMultiplier),
+        // Stats spéciales dérivées (split physique/spécial pour CHANTIER 4)
+        spAtk: Math.round(baseStats.atk * sm.spAtk * buddyMultiplier),
+        spDef: Math.round(baseStats.def * sm.spDef * buddyMultiplier)
     };
 
-    // Générer les skills selon l'archétype
-    const skills = ARCHETYPE_SKILLS[archetype].map(skill => ({
-        ...skill,
-        currentCooldown: 0
-    }));
+    // CHANTIER 2 — Moveset fondé sur le type + le rôle (plus de skills génériques).
+    const skills = buildMoveset(types, archetype, rarity);
 
     return {
         id: pokemonId,
@@ -456,10 +582,12 @@ function createBattleUnit(pokemonId, isShiny = false) {
         isBuddy: isBuddy,
         buddyLevel: buddyLevel,
         archetype: archetype,
+        rarity: rarity,
         stats: finalStats,
         currentHp: finalStats.hp,
         maxHp: finalStats.hp,
         atb: 0, // Attack Time Bar (0 à 100)
+        shield: 0,
         skills: skills,
         statusEffects: [] // Buffs/Debuffs
     };
@@ -478,6 +606,7 @@ window.renderBossBattlePage = function () {
         console.error('❌ Container boss-battle-container introuvable!');
         return;
     }
+    container.classList.remove('bb-fullscreen');
     console.log('✅ Container trouvé:', container);
 
     // Vérifier le déblocage
