@@ -8,11 +8,11 @@
     const POKELIKE_CONFIG = {
         maxTeamSize: 6,
         dailyTickets: 5,
-        mapRows: 16,
-        gymRows: [2, 4, 6, 8, 10, 11, 12, 13],
-        eliteRow: 14,
-        championRow: 15,
-        rowSpacing: 80,
+        mapRows: 14,
+        gymRows: [2, 4, 5, 7, 8, 9, 10, 11],
+        eliteRow: 12,
+        championRow: 13,
+        rowSpacing: 78,
         victoryCoins: 2500,
         victoryXp: 500,
         battleXpBase: 1,
@@ -481,7 +481,8 @@
     function renderMapCanvas() {
         const nodes = runState.map.nodes;
         const available = new Set(getAvailableNodes().map(n => n.id));
-        const maxRow = POKELIKE_CONFIG.mapRows - 1;
+        // maxRow déduit de la carte réelle (robuste si la config change entre deux runs).
+        const maxRow = nodes.reduce((m, n) => Math.max(m, n.row), 0);
 
         // Départ (row 0) en HAUT, Champion (dernière rangée) en BAS — comme PokeLike
         const getY = row => (row / maxRow) * 92 + 4;
@@ -519,7 +520,7 @@
         });
 
         // Référentiel UNIQUE : SVG + nœuds dans le même conteneur, même hauteur calculée.
-        const mapH = POKELIKE_CONFIG.mapRows * POKELIKE_CONFIG.rowSpacing;
+        const mapH = (maxRow + 1) * POKELIKE_CONFIG.rowSpacing;
         return `<div class="pl-map-nodes" style="height:${mapH}px">
                 <svg class="pl-map-lines" viewBox="0 0 100 100" preserveAspectRatio="none">${svgLines}</svg>
                 ${nodeHtml}
@@ -555,6 +556,7 @@
                 <div class="pl-topbar-actions">
                     <button class="pl-icon-btn" onclick="PokeLike.showItems()" title="Sac">🎒</button>
                     <div class="pl-badge-count">🏅 ${runState.badges}/8</div>
+                    <button class="pl-icon-btn" onclick="PokeLike.exitToNav()" title="Quitter (la run est conservée)">✕</button>
                 </div>
             </div>
             <div class="pl-topbar-region">${gen.label} · ${region}</div>`;
@@ -576,6 +578,7 @@
         if (!container || !runState?.active) return;
         hideNav();
         window.scrollTo(0, 0);
+        document.body.classList.add('in-expedition');
         container.classList.add('pl-fullscreen');
 
         container.innerHTML = `
@@ -584,15 +587,17 @@
                 <div class="pl-map-scroll">${renderMapCanvas()}</div>
             </div>`;
 
-        // Auto-scroll : départ en HAUT, on suit le nœud courant à mesure qu'on descend.
-        setTimeout(() => {
+        // Auto-scroll : suivre le nœud courant pour qu'il soit toujours visible et centré.
+        requestAnimationFrame(() => {
             const mapScroll = container.querySelector('.pl-map-scroll');
             if (!mapScroll) return;
             const currentBtn = mapScroll.querySelector('[data-map-current="true"]');
-            mapScroll.scrollTop = currentBtn
-                ? Math.max(0, currentBtn.offsetTop - mapScroll.clientHeight / 2)
-                : 0;
-        }, 50);
+            if (currentBtn) {
+                mapScroll.scrollTop = Math.max(0, currentBtn.offsetTop - mapScroll.clientHeight / 2);
+            } else {
+                mapScroll.scrollTop = 0;
+            }
+        });
     }
 
     function addItem(itemId, qty = 1) {
@@ -893,14 +898,11 @@
         gameState.rogue.runsCompleted = (gameState.rogue.runsCompleted || 0) + 1;
         gameState.rogue.lastRunRewards = { victory, badges, duration, region: getRegion() };
         saveGame();
-        showNav();
-        document.getElementById('expedition-container')?.classList.remove('pl-fullscreen');
         runState = null;
 
-        const modal = document.createElement('div');
-        modal.className = 'modal active pl-summary-modal';
-        modal.innerHTML = `
-            <div class="pl-summary">
+        // FIX 3 : game over en overlay centré (z-index 1700), pas dans le flux du conteneur.
+        openOverlay(`
+            <div class="pl-overlay-box pl-summary">
                 <h2>${victory ? '🏆 CHAMPION !' : '💔 Run terminée'}</h2>
                 <p>${victory ? 'Vous avez conquis la Ligue Pokémon !' : 'Votre équipe a été mise K.O.'}</p>
                 <div class="pl-summary-stats">
@@ -908,9 +910,8 @@
                     <div>⏱️ ${Math.floor(duration / 60)}m ${duration % 60}s</div>
                     ${victory ? `<div>💰 +${POKELIKE_CONFIG.victoryCoins} coins</div><div>⭐ +${POKELIKE_CONFIG.victoryXp} XP</div>` : ''}
                 </div>
-                <button class="btn btn--primary" onclick="this.closest('.modal').remove(); renderExpeditionPage();">Retour</button>
-            </div>`;
-        document.body.appendChild(modal);
+                <button class="btn btn--primary" onclick="this.closest('.pl-overlay').remove(); renderExpeditionPage();">Retour</button>
+            </div>`);
     }
 
     function startRunWithStarter(starterId) {
@@ -943,9 +944,8 @@
     function showStarterModal() {
         const gen = getGenConfig();
         const region = getRegion();
-        const modal = document.createElement('div');
-        modal.className = 'modal active';
-        modal.innerHTML = `
+        // FIX 3 : overlay centré (z-index 1700), au-dessus de la vue fullscreen.
+        openOverlay(`
             <div class="pl-starter-modal">
                 <h2>🌱 Choisissez votre starter</h2>
                 <p>${gen.label} · Région ${region}</p>
@@ -956,9 +956,8 @@
                             <span>${FRENCH_NAMES[id]}</span>
                         </button>`).join('')}
                 </div>
-                <button class="btn btn--outline" onclick="this.closest('.modal').remove()">Annuler</button>
-            </div>`;
-        document.body.appendChild(modal);
+                <button class="btn btn--outline" onclick="this.closest('.pl-overlay').remove()">Annuler</button>
+            </div>`);
     }
 
     function checkTicketReset() {
@@ -975,7 +974,10 @@
     function renderHub() {
         const container = document.getElementById('expedition-container');
         if (!container) return;
-        container.classList.remove('pl-fullscreen');
+        // FIX 1 : tout l'onglet Expédition est en fullscreen (hub inclus), pas de scroll de page.
+        document.body.classList.add('in-expedition');
+        container.classList.add('pl-fullscreen');
+        window.scrollTo(0, 0);
         checkTicketReset();
 
         if (!gameState.rogue.expeditionTutorialSeen) {
@@ -1031,9 +1033,7 @@
     }
 
     function showTutorial() {
-        const modal = document.createElement('div');
-        modal.className = 'modal active';
-        modal.innerHTML = `
+        openOverlay(`
             <div class="pl-starter-modal">
                 <h2>📚 PokéLike — Tutoriel</h2>
                 <div style="text-align:left;line-height:1.7;color:rgba(255,255,255,0.9);">
@@ -1043,9 +1043,8 @@
                     <p><strong>4.</strong> Objets : boosts de type (+50% dégâts), Vive Griffe, Super Bonbon…</p>
                     <p><strong>5.</strong> Battez 8 champions d'arène puis la Ligue pour gagner.</p>
                 </div>
-                <button class="btn btn--primary" onclick="this.closest('.modal').remove()">Compris !</button>
-            </div>`;
-        document.body.appendChild(modal);
+                <button class="btn btn--primary" onclick="this.closest('.pl-overlay').remove()">Compris !</button>
+            </div>`);
         gameState.rogue.expeditionTutorialSeen = true;
         saveGame();
     }
@@ -1110,6 +1109,15 @@
                 }
             }
             window._plCaptureCallback?.();
+        },
+        // Quitter l'Expédition pendant une run (la run reste en mémoire/sauvegarde, reprenable).
+        exitToNav() {
+            const container = document.getElementById('expedition-container');
+            container?.classList.remove('pl-fullscreen');
+            document.body.classList.remove('in-expedition');
+            showNav();
+            if (typeof switchPage === 'function') switchPage('home');
+            else if (typeof selectNav === 'function') selectNav('home');
         },
         showTutorial
     };

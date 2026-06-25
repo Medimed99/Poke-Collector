@@ -8112,8 +8112,19 @@ img, canvas, video {
 .pl-hub {
     max-width: 640px;
     margin: 0 auto;
-    padding: 24px;
+    padding: 20px 20px 90px;       /* place pour la nav du bas, pas de scroll de page */
     color: #fff;
+}
+
+/* Le hub en fullscreen : occupe l'espace, scroll INTERNE seulement si nécessaire */
+#expedition-container.pl-fullscreen .pl-hub {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .pl-hub-title {
@@ -8188,7 +8199,7 @@ img, canvas, video {
 #expedition-container.pl-fullscreen {
     position: fixed;
     inset: 0;
-    z-index: 50;
+    z-index: 1500;              /* au-dessus de la barre d'intégrité (99), toasts, etc. */
     height: 100dvh;
     max-width: none;
     width: 100%;
@@ -8198,6 +8209,27 @@ img, canvas, video {
     background: #0d1410;
     display: flex;
     flex-direction: column;
+}
+
+/* Masquer la barre d'intégrité pendant l'Expédition (conflit visuel + non pertinente) */
+body.in-expedition #world-integrity-bar { display: none !important; }
+
+/* Garder la nav du bas cliquable AU-DESSUS de la vue fullscreen (hub) */
+body.in-expedition .bottom-nav,
+body.in-expedition .new-bottom-nav { z-index: 1600; }
+
+/* Tous les popups Expédition : overlay fixed centré, au-dessus de la vue fullscreen
+   ET de la nav du bas (z-index:9000) pour qu'aucun élément ne transparaisse. */
+.pl-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0,0,0,0.85);
+    overflow-y: auto;
 }
 
 .pl-screen {
@@ -8295,10 +8327,16 @@ img, canvas, video {
     margin-top: 4px;
 }
 
-/* Bandeau de combat dans le haut (FIX 4) */
-.pl-battle-bar { color: #fff; }
+/* Bandeau de combat dans le haut (FIX 5) — centré, fond opaque (topbar) */
+.pl-battle-bar {
+    color: #fff;
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+}
 .pl-battle-bar .pl-battle-arena { margin: 4px 0; min-height: 150px; }
 .pl-battle-bar .pl-battle-msg { margin: 6px 0; }
+.pl-battle-bar .pl-battle-btns { justify-content: center; }
 
 /* Overlays centrés (capture / sac / équipe) — FIX 5 */
 .pl-overlay-box {
