@@ -7974,6 +7974,145 @@ img, canvas, video {
     margin-bottom: 12px;
 }
 
+/* ===== Mode plein écran PokeLike (mono-colonne, départ en haut) ===== */
+#expedition-container.pl-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    height: 100dvh;
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;            /* le scroll se fait DANS la carte */
+    background: #0d1410;
+    display: flex;
+    flex-direction: column;
+}
+
+.pl-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    color: #fff;
+}
+
+.pl-topbar {
+    flex: 0 0 auto;
+    background: #11201a;
+    border-bottom: 2px solid #1f3d2e;
+    padding: 8px 10px;
+}
+
+.pl-topbar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.pl-team-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    flex: 1 1 auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.pl-mini {
+    flex: 0 0 auto;
+    width: 46px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px;
+    padding: 3px 4px 4px;
+    cursor: pointer;
+}
+
+.pl-mini img {
+    width: 36px;
+    height: 36px;
+    image-rendering: pixelated;
+    display: block;
+    margin: 0 auto;
+}
+
+.pl-mini-hp {
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 2px;
+}
+
+.pl-mini-hp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    transition: width 0.3s;
+}
+
+.pl-mini--ko { opacity: 0.4; filter: grayscale(1); }
+
+.pl-topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.pl-icon-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 6px 9px;
+    cursor: pointer;
+}
+
+.pl-badge-count {
+    font-weight: 700;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.pl-topbar-region {
+    font-size: 0.72rem;
+    opacity: 0.6;
+    margin-top: 4px;
+}
+
+/* Bandeau de combat dans le haut (FIX 4) */
+.pl-battle-bar { color: #fff; }
+.pl-battle-bar .pl-battle-arena { margin: 4px 0; min-height: 150px; }
+.pl-battle-bar .pl-battle-msg { margin: 6px 0; }
+
+/* Overlays centrés (capture / sac / équipe) — FIX 5 */
+.pl-overlay-box {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 2px solid rgba(125,95,255,0.4);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 460px;
+    width: 92%;
+    max-height: 85vh;
+    overflow-y: auto;
+    text-align: center;
+    color: #fff;
+}
+
+.pl-overlay-box .pl-team-list,
+.pl-overlay-box .pl-items-list {
+    min-height: auto;
+    text-align: left;
+    margin: 12px 0;
+}
+
+.pl-overlay-badges { margin: 12px 0; }
+
 .pl-run {
     display: grid;
     grid-template-columns: 200px 1fr 180px;
@@ -8146,10 +8285,15 @@ img, canvas, video {
 }
 
 .pl-map-scroll {
+    flex: 1 1 auto;
     position: relative;
-    height: 100%;
+    min-height: 0;
     overflow-y: auto;
     padding: 16px 8px;
+    background:
+        linear-gradient(180deg, rgba(30,80,40,0.3), rgba(20,50,30,0.5)),
+        repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.03) 40px, rgba(0,0,0,0.03) 41px);
+    background-color: #4a8c55;
 }
 
 .pl-map-lines {
@@ -8177,7 +8321,8 @@ img, canvas, video {
 
 .pl-map-nodes {
     position: relative;
-    min-height: 900px;
+    width: 100%;
+    /* hauteur calculée inline (mapRows × rowSpacing) — référentiel unique SVG/nœuds */
 }
 
 .pl-node {
@@ -8189,21 +8334,73 @@ img, canvas, video {
     border: 2px solid rgba(0,0,0,0.4);
     background: rgba(60,60,60,0.85);
     cursor: default;
-    opacity: 0.55;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, filter 0.2s, opacity 0.2s;
     z-index: 2;
 }
 
+/* État VERROUILLÉ : sombre + désaturé */
+.pl-node--locked {
+    opacity: 0.5;
+    filter: grayscale(0.85) brightness(0.65);
+}
+
+/* État DISPONIBLE : pleine couleur + halo + pulsation */
 .pl-node--available {
     opacity: 1;
     cursor: pointer;
+    filter: none;
     animation: plNodePulse 1.5s ease-in-out infinite;
-    box-shadow: 0 0 16px rgba(255,255,255,0.8);
+    box-shadow: 0 0 16px rgba(255,255,255,0.85);
 }
 
+/* État COMPLÉTÉ : estompé + coché */
 .pl-node--done {
     opacity: 0.7;
+    filter: grayscale(0.3);
     background: rgba(76,175,80,0.5);
+}
+
+.pl-node--done::after {
+    content: '✓';
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    border-radius: 50%;
+    background: #4caf50;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.4);
+}
+
+/* État COURANT : anneau lumineux + flèche au-dessus */
+.pl-node--current {
+    opacity: 1;
+    filter: none;
+    border-color: #ffd700;
+    box-shadow: 0 0 0 3px #ffd700, 0 0 20px rgba(255,215,0,0.9);
+    z-index: 3;
+}
+
+.pl-node--current::before {
+    content: '▼';
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ffd700;
+    font-size: 15px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+    animation: plArrowBounce 1s ease-in-out infinite;
+}
+
+@keyframes plArrowBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%      { transform: translateX(-50%) translateY(4px); }
 }
 
 .pl-node--gym { background: rgba(255,215,0,0.35); }

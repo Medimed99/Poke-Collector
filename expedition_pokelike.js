@@ -8,15 +8,24 @@
     const POKELIKE_CONFIG = {
         maxTeamSize: 6,
         dailyTickets: 5,
-        mapRows: 20,
-        gymRows: [2, 4, 6, 8, 10, 12, 14, 16],
-        eliteRow: 18,
-        championRow: 19,
+        mapRows: 16,
+        gymRows: [2, 4, 6, 8, 10, 11, 12, 13],
+        eliteRow: 14,
+        championRow: 15,
+        rowSpacing: 80,
         victoryCoins: 2500,
         victoryXp: 500,
         battleXpBase: 1,
         luckyEggMultiplier: 1.5
     };
+
+    // Positions de colonnes FIXES (%) pour un treillis régulier et lisible
+    const COLUMN_POSITIONS = {
+        1: [50],
+        2: [28, 72],
+        3: [18, 50, 82]
+    };
+    const columnX = (count, idx) => (COLUMN_POSITIONS[count] || COLUMN_POSITIONS[3])[idx] ?? 50;
 
     const REGION_GENERATION = {
         Kanto: { label: 'Génération I', starters: [1, 4, 7] },
@@ -348,16 +357,30 @@
             }
         }
 
+        // Connexions par proximité X : pointillés courts, pas de zigzag traversant.
+        const xOf = n => columnX(rowCounts[n.row], n.col);
         for (let row = 0; row < POKELIKE_CONFIG.mapRows - 1; row++) {
             const current = nodes.filter(n => n.row === row);
             const next = nodes.filter(n => n.row === row + 1);
+            const hasIncoming = new Set();
+            // Chaque nœud relie au(x) nœud(s) horizontalement le(s) plus proche(s)
             current.forEach(from => {
-                const targets = new Set();
-                const ideal = Math.round((from.col / Math.max(1, current.length - 1)) * (next.length - 1));
-                targets.add(next[Math.min(ideal, next.length - 1)]);
-                if (ideal > 0) targets.add(next[ideal - 1]);
-                if (ideal < next.length - 1) targets.add(next[ideal + 1]);
-                targets.forEach(to => connections.push({ from: from.id, to: to.id }));
+                const fx = xOf(from);
+                const sorted = [...next].sort((a, b) => Math.abs(xOf(a) - fx) - Math.abs(xOf(b) - fx));
+                connections.push({ from: from.id, to: sorted[0].id });
+                hasIncoming.add(sorted[0].id);
+                if (sorted[1] && Math.abs(xOf(sorted[1]) - fx) <= 32) {
+                    connections.push({ from: from.id, to: sorted[1].id });
+                    hasIncoming.add(sorted[1].id);
+                }
+            });
+            // Garantir que chaque nœud de la rangée suivante est atteignable
+            next.forEach(to => {
+                if (hasIncoming.has(to.id)) return;
+                const tx = xOf(to);
+                const from = [...current].sort((a, b) => Math.abs(xOf(a) - tx) - Math.abs(xOf(b) - tx))[0];
+                connections.push({ from: from.id, to: to.id });
+                hasIncoming.add(to.id);
             });
         }
 
@@ -460,8 +483,8 @@
         const available = new Set(getAvailableNodes().map(n => n.id));
         const maxRow = POKELIKE_CONFIG.mapRows - 1;
 
-        // Y inversé : row 0 (départ) en bas, row maxRow (boss) en haut
-        const getY = row => (1 - row / maxRow) * 88 + 4;
+        // Départ (row 0) en HAUT, Champion (dernière rangée) en BAS — comme PokeLike
+        const getY = row => (row / maxRow) * 92 + 4;
 
         let svgLines = '';
         runState.map.connections.forEach(c => {
@@ -484,8 +507,9 @@
             const isAvailable = available.has(n.id);
             const isDone = n.completed;
             const isCurrent = runState.currentNodeId === n.id;
+            const isLocked = !isAvailable && !isDone && !isCurrent;
             nodeHtml += `
-                <button class="pl-node pl-node--${n.type} ${isDone ? 'pl-node--done' : ''} ${isAvailable ? 'pl-node--available' : ''} ${isCurrent ? 'pl-node--current' : ''}"
+                <button class="pl-node pl-node--${n.type} ${isDone ? 'pl-node--done' : ''} ${isAvailable ? 'pl-node--available' : ''} ${isCurrent ? 'pl-node--current' : ''} ${isLocked ? 'pl-node--locked' : ''}"
                     style="left:${x}%;top:${y}%;"
                     ${isCurrent ? 'data-map-current="true"' : ''}
                     ${isAvailable ? `onclick="PokeLike.selectNode(${n.id})"` : 'disabled'}
@@ -494,8 +518,9 @@
                 </button>`;
         });
 
-        // SVG dans le même conteneur référentiel que les nœuds (référentiel unique)
-        return `<div class="pl-map-nodes">
+        // Référentiel UNIQUE : SVG + nœuds dans le même conteneur, même hauteur calculée.
+        const mapH = POKELIKE_CONFIG.mapRows * POKELIKE_CONFIG.rowSpacing;
+        return `<div class="pl-map-nodes" style="height:${mapH}px">
                 <svg class="pl-map-lines" viewBox="0 0 100 100" preserveAspectRatio="none">${svgLines}</svg>
                 ${nodeHtml}
             </div>`;
@@ -504,57 +529,69 @@
     function getNodeX(node) {
         const rowNodes = runState.map.nodes.filter(n => n.row === node.row);
         const idx = rowNodes.findIndex(n => n.id === node.id);
-        const count = rowNodes.length;
-        if (count === 1) return 50;
-        return 10 + idx * (80 / (count - 1));
+        return columnX(rowNodes.length, idx);
     }
 
-    function renderRunUI(extraPanel = '') {
+    // Rangée horizontale compacte de l'équipe (mini-sprites + barres HP) — visible en haut.
+    function renderTeamRow() {
+        return runState.team.map((p) => {
+            const hpPct = Math.max(0, Math.round((p.currentHp / p.maxHp) * 100));
+            const ko = p.currentHp <= 0;
+            return `
+                <button class="pl-mini ${ko ? 'pl-mini--ko' : ''}" onclick="PokeLike.showTeamDetail()" title="${p.name} Niv.${p.level}">
+                    <img src="${getAnimatedSpriteUrl(p.id, false)}" alt="${p.name}">
+                    <div class="pl-mini-hp"><div class="pl-mini-hp-fill" style="width:${hpPct}%"></div></div>
+                </button>`;
+        }).join('');
+    }
+
+    // Bandeau du haut en exploration : équipe compacte + badges + accès sac (à la demande).
+    function renderTopbarExploration() {
+        const region = getRegion();
+        const gen = getGenConfig();
+        return `
+            <div class="pl-topbar-row">
+                <div class="pl-team-row">${renderTeamRow()}</div>
+                <div class="pl-topbar-actions">
+                    <button class="pl-icon-btn" onclick="PokeLike.showItems()" title="Sac">🎒</button>
+                    <div class="pl-badge-count">🏅 ${runState.badges}/8</div>
+                </div>
+            </div>
+            <div class="pl-topbar-region">${gen.label} · ${region}</div>`;
+    }
+
+    // Overlay centré plein écran (réutilise .modal global qui est en position:fixed).
+    function openOverlay(innerHtml, extraClass = '') {
+        const modal = document.createElement('div');
+        modal.className = `modal active pl-overlay ${extraClass}`;
+        modal.innerHTML = innerHtml;
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+        document.body.appendChild(modal);
+        return modal;
+    }
+
+    // Rendu de l'écran de run : bandeau haut (combat OU équipe) + carte qui scrolle dessous.
+    function renderRunUI(topbarOverride = null) {
         const container = document.getElementById('expedition-container');
         if (!container || !runState?.active) return;
         hideNav();
+        window.scrollTo(0, 0);
+        container.classList.add('pl-fullscreen');
 
-        const region = getRegion();
-        const gen = getGenConfig();
         container.innerHTML = `
-            <div class="pl-run">
-                <div class="pl-sidebar pl-sidebar--left">
-                    <div class="pl-panel-header">TEAM</div>
-                    <div class="pl-team-list">${renderTeamSidebar()}</div>
-                </div>
-                <div class="pl-center">
-                    <div class="pl-run-header">
-                        <span>${gen.label} · ${region}</span>
-                        <span>🏅 ${runState.badges}/8</span>
-                    </div>
-                    <div class="pl-map-area">
-                        <div class="pl-map-bg"></div>
-                        <div class="pl-map-scroll">${renderMapCanvas()}</div>
-                    </div>
-                    ${extraPanel}
-                </div>
-                <div class="pl-sidebar pl-sidebar--right">
-                    <div class="pl-panel">
-                        <div class="pl-panel-header">ITEMS</div>
-                        <div class="pl-items-list">${renderItemsSidebar()}</div>
-                    </div>
-                    <div class="pl-panel">
-                        <div class="pl-panel-header">BADGES</div>
-                        <div class="pl-badges-grid">${renderBadgesSidebar()}</div>
-                    </div>
-                </div>
+            <div class="pl-screen">
+                <div class="pl-topbar">${topbarOverride != null ? topbarOverride : renderTopbarExploration()}</div>
+                <div class="pl-map-scroll">${renderMapCanvas()}</div>
             </div>`;
-        // Auto-scroll vers la rangée courante (départ = bas de la carte)
+
+        // Auto-scroll : départ en HAUT, on suit le nœud courant à mesure qu'on descend.
         setTimeout(() => {
             const mapScroll = container.querySelector('.pl-map-scroll');
-            if (mapScroll) {
-                const currentBtn = mapScroll.querySelector('[data-map-current="true"]');
-                if (currentBtn) {
-                    mapScroll.scrollTop = currentBtn.offsetTop - mapScroll.clientHeight / 2;
-                } else {
-                    mapScroll.scrollTop = mapScroll.scrollHeight;
-                }
-            }
+            if (!mapScroll) return;
+            const currentBtn = mapScroll.querySelector('[data-map-current="true"]');
+            mapScroll.scrollTop = currentBtn
+                ? Math.max(0, currentBtn.offsetTop - mapScroll.clientHeight / 2)
+                : 0;
         }, 50);
     }
 
@@ -584,7 +621,7 @@
         const nodeLabel = nodeType === 'gym' ? 'Combat d\'Arène !' : nodeType === 'elite' ? 'Élite 4 !' : nodeType === 'champion' ? 'Champion !' : 'Combat !';
 
         renderRunUI(`
-            <div class="pl-event-panel pl-battle-panel">
+            <div class="pl-battle-bar">
                 <div class="pl-battle-arena">
                     <div class="pl-battle-side pl-battle-side--enemy">
                         <div class="pl-datbox pl-datbox--enemy">
@@ -720,9 +757,10 @@
 
     function showCapturePanel(pokemonId, callback) {
         const wild = createRunPokemon(pokemonId, Math.max(3, 4 + runState.badges * 2));
-        renderRunUI(`
-            <div class="pl-event-panel">
-                <h3>🔴 Opportunité de capture</h3>
+        renderRunUI();
+        openOverlay(`
+            <div class="pl-overlay-box pl-capture-box">
+                <h3>Opportunité de capture</h3>
                 <img src="${getAnimatedSpriteUrl(wild.id, false)}" class="pl-event-sprite">
                 <p><strong>${wild.name}</strong> Niv.${wild.level} veut rejoindre votre équipe !</p>
                 <div class="pl-capture-actions">
@@ -734,6 +772,10 @@
                 </div>
             </div>`);
         window._plCaptureCallback = callback;
+    }
+
+    function closeCaptureOverlay() {
+        document.querySelector('.pl-overlay .pl-capture-box')?.closest('.pl-overlay')?.remove();
     }
 
     function completeNode(node) {
@@ -852,6 +894,7 @@
         gameState.rogue.lastRunRewards = { victory, badges, duration, region: getRegion() };
         saveGame();
         showNav();
+        document.getElementById('expedition-container')?.classList.remove('pl-fullscreen');
         runState = null;
 
         const modal = document.createElement('div');
@@ -932,6 +975,7 @@
     function renderHub() {
         const container = document.getElementById('expedition-container');
         if (!container) return;
+        container.classList.remove('pl-fullscreen');
         checkTicketReset();
 
         if (!gameState.rogue.expeditionTutorialSeen) {
@@ -1013,14 +1057,37 @@
             startRunWithStarter(id);
         },
         selectNode: resolveNode,
+        showItems() {
+            openOverlay(`
+                <div class="pl-overlay-box">
+                    <h3>🎒 Sac</h3>
+                    <div class="pl-items-list">${renderItemsSidebar()}</div>
+                    <div class="pl-overlay-badges">
+                        <div class="pl-panel-header">BADGES</div>
+                        <div class="pl-badges-grid">${renderBadgesSidebar()}</div>
+                    </div>
+                    <button class="btn btn--primary" onclick="this.closest('.modal').remove()">Fermer</button>
+                </div>`);
+        },
+        showTeamDetail() {
+            openOverlay(`
+                <div class="pl-overlay-box">
+                    <h3>Équipe</h3>
+                    <div class="pl-team-list">${renderTeamSidebar()}</div>
+                    <button class="btn btn--primary" onclick="this.closest('.modal').remove()">Fermer</button>
+                </div>`);
+        },
         moveTeamMember(index, dir) {
             const newIdx = index + dir;
             if (newIdx < 0 || newIdx >= runState.team.length) return;
             const t = runState.team;
             [t[index], t[newIdx]] = [t[newIdx], t[index]];
             renderRunUI();
+            const overlayList = document.querySelector('.pl-overlay .pl-team-list');
+            if (overlayList) overlayList.innerHTML = renderTeamSidebar();
         },
         capturePokemon(id, level, action) {
+            closeCaptureOverlay();
             if (action === 'skip') {
                 window._plCaptureCallback?.();
                 return;
