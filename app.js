@@ -11348,9 +11348,10 @@ window.switchPage = function (pageName) {
     const pages = document.querySelectorAll('.page');
     pages.forEach(page => page.classList.remove('active'));
 
-    // Quitter l'onglet Expédition : retirer le mode plein écran et la classe associée.
+    // Quitter l'onglet Expédition : retirer le mode plein écran et les classes associées.
     if (pageName !== 'expedition') {
         document.body.classList.remove('in-expedition');
+        document.body.classList.remove('pl-run-active');
         document.getElementById('expedition-container')?.classList.remove('pl-fullscreen');
     } else {
         document.body.classList.add('in-expedition');

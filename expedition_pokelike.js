@@ -519,9 +519,9 @@
                 </button>`;
         });
 
-        // Référentiel UNIQUE : SVG + nœuds dans le même conteneur, même hauteur calculée.
-        const mapH = (maxRow + 1) * POKELIKE_CONFIG.rowSpacing;
-        return `<div class="pl-map-nodes" style="height:${mapH}px">
+        // Référentiel UNIQUE : SVG + nœuds remplissent toute la hauteur dispo → carte
+        // entière visible sans scroll (comme PokeLike). Les % de getY s'étirent dessus.
+        return `<div class="pl-map-nodes">
                 <svg class="pl-map-lines" viewBox="0 0 100 100" preserveAspectRatio="none">${svgLines}</svg>
                 ${nodeHtml}
             </div>`;
@@ -572,32 +572,26 @@
         return modal;
     }
 
-    // Rendu de l'écran de run : bandeau haut (combat OU équipe) + carte qui scrolle dessous.
-    function renderRunUI(topbarOverride = null) {
+    // Rendu de l'écran de run. topbarOverride = contenu du bandeau haut ; mainOverride =
+    // contenu principal (combat centré) à la place de la carte.
+    function renderRunUI(topbarOverride = null, mainOverride = null) {
         const container = document.getElementById('expedition-container');
         if (!container || !runState?.active) return;
         hideNav();
         window.scrollTo(0, 0);
         document.body.classList.add('in-expedition');
+        document.body.classList.add('pl-run-active');   // masque la nav du bas (immersif)
         container.classList.add('pl-fullscreen');
+
+        const main = mainOverride != null
+            ? mainOverride
+            : `<div class="pl-map-scroll">${renderMapCanvas()}</div>`;
 
         container.innerHTML = `
             <div class="pl-screen">
                 <div class="pl-topbar">${topbarOverride != null ? topbarOverride : renderTopbarExploration()}</div>
-                <div class="pl-map-scroll">${renderMapCanvas()}</div>
+                ${main}
             </div>`;
-
-        // Auto-scroll : suivre le nœud courant pour qu'il soit toujours visible et centré.
-        requestAnimationFrame(() => {
-            const mapScroll = container.querySelector('.pl-map-scroll');
-            if (!mapScroll) return;
-            const currentBtn = mapScroll.querySelector('[data-map-current="true"]');
-            if (currentBtn) {
-                mapScroll.scrollTop = Math.max(0, currentBtn.offsetTop - mapScroll.clientHeight / 2);
-            } else {
-                mapScroll.scrollTop = 0;
-            }
-        });
     }
 
     function addItem(itemId, qty = 1) {
@@ -625,21 +619,13 @@
         const firstPlayer = runState.team[0];
         const nodeLabel = nodeType === 'gym' ? 'Combat d\'Arène !' : nodeType === 'elite' ? 'Élite 4 !' : nodeType === 'champion' ? 'Champion !' : 'Combat !';
 
-        renderRunUI(`
-            <div class="pl-battle-bar">
-                <div class="pl-battle-arena">
-                    <div class="pl-battle-side pl-battle-side--enemy">
-                        <div class="pl-datbox pl-datbox--enemy">
-                            <div class="pl-datbox-row">
-                                <span class="pl-datbox-name" id="pl-enemy-name">${firstEnemy.name}</span>
-                                <span class="pl-datbox-level">Niv.${firstEnemy.level}</span>
-                            </div>
-                            <div class="pl-hp-bar-wrap"><div class="pl-hp-bar" id="pl-hp-bar-enemy"></div></div>
-                        </div>
-                        <img class="pl-battle-sprite pl-battle-sprite--enemy" id="pl-sprite-enemy" src="${getAnimatedSpriteUrl(firstEnemy.id, false)}">
-                    </div>
-                    <div class="pl-battle-side pl-battle-side--player">
-                        <img class="pl-battle-sprite pl-battle-sprite--player" id="pl-sprite-player" src="${getAnimatedSpriteUrl(firstPlayer.id, false)}">
+        // Bandeau haut minimal pendant le combat (titre seulement).
+        const battleHead = `<div class="pl-battle-head">⚔️ ${nodeLabel}</div>`;
+        // Stage centré : NOTRE Pokémon à GAUCHE, l'ENNEMI à DROITE (comme PokeLike).
+        const battleStage = `
+            <div class="pl-battle-stage">
+                <div class="pl-battle-row">
+                    <div class="pl-battle-col pl-battle-col--player">
                         <div class="pl-datbox pl-datbox--player">
                             <div class="pl-datbox-row">
                                 <span class="pl-datbox-name" id="pl-player-name">${firstPlayer.name}</span>
@@ -648,14 +634,29 @@
                             <div class="pl-hp-bar-wrap"><div class="pl-hp-bar" id="pl-hp-bar-player"></div></div>
                             <div class="pl-datbox-hp-text" id="pl-hp-text-player">${firstPlayer.currentHp}/${firstPlayer.maxHp}</div>
                         </div>
+                        <img class="pl-battle-sprite pl-battle-sprite--player" id="pl-sprite-player" src="${getAnimatedSpriteUrl(firstPlayer.id, false)}">
+                        <div class="pl-battle-side-label">VOTRE POKÉMON</div>
+                    </div>
+                    <div class="pl-battle-vs">VS</div>
+                    <div class="pl-battle-col pl-battle-col--enemy">
+                        <div class="pl-datbox pl-datbox--enemy">
+                            <div class="pl-datbox-row">
+                                <span class="pl-datbox-name" id="pl-enemy-name">${firstEnemy.name}</span>
+                                <span class="pl-datbox-level">Niv.${firstEnemy.level}</span>
+                            </div>
+                            <div class="pl-hp-bar-wrap"><div class="pl-hp-bar" id="pl-hp-bar-enemy"></div></div>
+                        </div>
+                        <img class="pl-battle-sprite pl-battle-sprite--enemy" id="pl-sprite-enemy" src="${getAnimatedSpriteUrl(firstEnemy.id, false)}">
+                        <div class="pl-battle-side-label">ADVERSAIRE</div>
                     </div>
                 </div>
-                <div class="pl-battle-msg" id="pl-battle-msg">${NODE_META[nodeType]?.icon || '⚔️'} ${nodeLabel}</div>
+                <div class="pl-battle-msg" id="pl-battle-msg">${nodeLabel}</div>
                 <div class="pl-battle-btns">
                     <button id="pl-battle-start" class="btn btn--primary">⚔️ Lancer le combat</button>
                     <button id="pl-battle-skip" class="btn btn--secondary" style="display:none">⏭ Passer</button>
                 </div>
-            </div>`);
+            </div>`;
+        renderRunUI(battleHead, battleStage);
 
         document.getElementById('pl-battle-start').onclick = () => {
             const startBtn = document.getElementById('pl-battle-start');
@@ -898,6 +899,7 @@
         gameState.rogue.runsCompleted = (gameState.rogue.runsCompleted || 0) + 1;
         gameState.rogue.lastRunRewards = { victory, badges, duration, region: getRegion() };
         saveGame();
+        document.body.classList.remove('pl-run-active');
         runState = null;
 
         // FIX 3 : game over en overlay centré (z-index 1700), pas dans le flux du conteneur.
@@ -989,6 +991,8 @@
             return;
         }
 
+        // Hub (hors run) : la nav du bas reste visible et cliquable.
+        document.body.classList.remove('pl-run-active');
         showNav();
         const region = getRegion();
         const gen = getGenConfig();
@@ -1115,6 +1119,7 @@
             const container = document.getElementById('expedition-container');
             container?.classList.remove('pl-fullscreen');
             document.body.classList.remove('in-expedition');
+            document.body.classList.remove('pl-run-active');
             showNav();
             if (typeof switchPage === 'function') switchPage('home');
             else if (typeof selectNav === 'function') selectNav('home');

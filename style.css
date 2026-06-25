@@ -8214,9 +8214,19 @@ img, canvas, video {
 /* Masquer la barre d'intégrité pendant l'Expédition (conflit visuel + non pertinente) */
 body.in-expedition #world-integrity-bar { display: none !important; }
 
-/* Garder la nav du bas cliquable AU-DESSUS de la vue fullscreen (hub) */
+/* Masquer le bandeau narratif "INCURSION EN ZONE CORROMPUE" injecté dans le conteneur
+   (storytelling.js) : il s'imbrique en haut de la vue fullscreen et force le scroll. */
+#expedition-container.pl-fullscreen .module-narrative-intro { display: none !important; }
+
+/* Hub Expédition : garder la nav du bas cliquable AU-DESSUS de la vue fullscreen */
 body.in-expedition .bottom-nav,
 body.in-expedition .new-bottom-nav { z-index: 1600; }
+
+/* Pendant une run/un combat : masquer toute la nav (immersif, plein écran style PokeLike).
+   Nécessaire car .new-bottom-nav est display:flex !important (hideNav JS ne suffit pas). */
+body.pl-run-active .top-bar,
+body.pl-run-active .bottom-nav,
+body.pl-run-active .new-bottom-nav { display: none !important; }
 
 /* Tous les popups Expédition : overlay fixed centré, au-dessus de la vue fullscreen
    ET de la nav du bas (z-index:9000) pour qu'aucun élément ne transparaisse. */
@@ -8327,16 +8337,64 @@ body.in-expedition .new-bottom-nav { z-index: 1600; }
     margin-top: 4px;
 }
 
-/* Bandeau de combat dans le haut (FIX 5) — centré, fond opaque (topbar) */
-.pl-battle-bar {
-    color: #fff;
-    max-width: 480px;
-    margin: 0 auto;
-    width: 100%;
+/* Combat centré plein écran : NOTRE Pokémon à gauche, ENNEMI à droite (style PokeLike) */
+.pl-battle-head {
+    text-align: center;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #ffd54f;
+    padding: 4px 0;
 }
-.pl-battle-bar .pl-battle-arena { margin: 4px 0; min-height: 150px; }
-.pl-battle-bar .pl-battle-msg { margin: 6px 0; }
-.pl-battle-bar .pl-battle-btns { justify-content: center; }
+.pl-battle-stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px;
+    overflow-y: auto;
+    color: #fff;
+}
+.pl-battle-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 480px;
+}
+.pl-battle-col {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.pl-battle-col .pl-datbox { width: 100%; }
+.pl-battle-vs {
+    flex: 0 0 auto;
+    font-weight: 800;
+    font-size: 0.9rem;
+    opacity: 0.55;
+}
+.pl-battle-side-label {
+    font-size: 0.62rem;
+    letter-spacing: 1px;
+    opacity: 0.6;
+}
+.pl-battle-stage .pl-battle-sprite {
+    width: 104px;
+    height: 104px;
+}
+.pl-battle-stage .pl-battle-msg {
+    width: 100%;
+    max-width: 480px;
+    margin: 0;
+}
+.pl-battle-stage .pl-battle-btns { justify-content: center; }
 
 /* Overlays centrés (capture / sac / équipe) — FIX 5 */
 .pl-overlay-box {
@@ -8536,8 +8594,8 @@ body.in-expedition .new-bottom-nav { z-index: 1600; }
     flex: 1 1 auto;
     position: relative;
     min-height: 0;
-    overflow-y: auto;
-    padding: 16px 8px;
+    overflow: hidden;            /* la carte entière tient à l'écran, pas de scroll */
+    padding: 12px 8px;
     background:
         linear-gradient(180deg, rgba(30,80,40,0.3), rgba(20,50,30,0.5)),
         repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.03) 40px, rgba(0,0,0,0.03) 41px);
@@ -8570,14 +8628,14 @@ body.in-expedition .new-bottom-nav { z-index: 1600; }
 .pl-map-nodes {
     position: relative;
     width: 100%;
-    /* hauteur calculée inline (mapRows × rowSpacing) — référentiel unique SVG/nœuds */
+    height: 100%;                /* remplit la zone visible → carte complète sans scroll */
 }
 
 .pl-node {
     position: absolute;
     transform: translate(-50%, -50%);
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     border: 2px solid rgba(0,0,0,0.4);
     background: rgba(60,60,60,0.85);
@@ -8653,13 +8711,13 @@ body.in-expedition .new-bottom-nav { z-index: 1600; }
 
 .pl-node--gym { background: rgba(255,215,0,0.35); }
 .pl-node--elite { background: rgba(179,136,255,0.45); }
-.pl-node--champion { background: rgba(255,111,0,0.5); width: 52px; height: 52px; }
+.pl-node--champion { background: rgba(255,111,0,0.5); width: 46px; height: 46px; }
 
 .pl-node-icon { font-size: 1.2rem; }
 
 .pl-node-sprite {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     image-rendering: pixelated;
     display: block;
 }
